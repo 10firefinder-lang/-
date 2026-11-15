@@ -1,0 +1,397 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GOLD WEBSITE BUILDER 360 INFINITY</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&family=Assistant:wght@400;700&family=Rubik:wght@400;600&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#18202e;--ac:#0f9d8a;--ln:#e3e8ee}
+*{box-sizing:border-box}body{margin:0;font-family:Heebo,Arial,sans-serif;background:#eef1f5;color:var(--ink);height:100vh;display:flex;flex-direction:column}
+#top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:var(--ink);color:#fff}
+#top button,.pal button{font:inherit;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
+#top button{background:#ffffff1c;color:#fff}#top button.go{background:var(--ac);font-weight:600}#top button:focus-visible,.pal button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#tabs{display:flex;gap:4px;flex:1;overflow:auto}#tabs button.on{background:#fff;color:var(--ink);font-weight:600}
+#main{flex:1;display:grid;grid-template-columns:200px 1fr 290px;min-height:0}
+.pal,#props{background:#fff;overflow:auto;padding:12px}.pal{border-inline-end:1px solid var(--ln)}#props{border-inline-start:1px solid var(--ln)}
+.pal h4{margin:0 0 8px}.pal button{display:block;width:100%;text-align:start;background:#f3f6f9;margin-bottom:6px}.pal button:hover{background:#dff3ef}
+#cv{overflow:auto;padding:18px}#page{background:var(--bg);min-height:100%;border-radius:12px;box-shadow:0 2px 20px #0002;padding:10px 0 60px;font-family:var(--f),sans-serif}
+.blk{position:relative;outline:2px solid transparent;border-radius:10px;cursor:pointer}.blk:hover{outline-color:#0f9d8a55}.blk.sel{outline-color:var(--ac)}
+.tb{display:none;position:absolute;top:-14px;inset-inline-start:8px;background:var(--ac);border-radius:8px;z-index:3}.sel>.tb{display:flex}
+.tb button{background:0;border:0;color:#fff;padding:3px 8px;cursor:pointer}
+#props label{display:block;margin:0 0 10px;font-size:.9em;color:#4a5568}#props input:not([type=color],[type=file]),#props textarea,#props select{display:block;width:100%;margin-top:3px;padding:8px;border:1px solid #cfd6df;border-radius:8px;font:inherit}
+#props textarea{min-height:90px}#props input[type=color]{display:block;width:100%;height:36px;margin-top:3px}
+.th{display:inline-flex;margin:3px;position:relative}.th img{width:54px;height:54px;object-fit:cover;border-radius:6px}.th b{position:absolute;top:-4px;inset-inline-start:-4px;background:#d33;color:#fff;border-radius:50%;width:18px;height:18px;text-align:center;cursor:pointer;font-size:12px}
+.hint{color:#6b7787;font-size:.9em;line-height:1.6}
+.empty{padding:40px;text-align:center;color:#8895a5}
+@media(max-width:850px){#main{display:block;overflow:auto}.pal{display:flex;gap:6px;overflow:auto}.pal h4{display:none}.pal button{width:auto;white-space:nowrap}#props{border:0}body{height:auto}}
+</style></head><body>
+<div id="top"><b>✦ GOLD WEBSITE BUILDER 360 ∞</b><div id="tabs"></div>
+<button id="aib">🤖 עוזר</button><button id="dsh">🏠 האתרים שלי</button><button id="tpl">📚 תבניות</button><button id="undo" title="Ctrl+Z">↶ ביטול</button><button id="redo" title="Ctrl+Y">↷</button><button id="dv">🖥 מחשב</button><button id="prev">👁 תצוגה</button><button id="bk">💾 גיבוי</button><button id="ld">📂 טעינה</button><button class="go" id="pub">🚀 פרסום</button><input type="file" id="jf" accept=".json" hidden></div>
+<div id="main"><div class="pal" id="pal"></div><div id="cv"><div id="page"></div></div><div id="props"></div></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,8),lines=s=>String(s||'').split('\n').map(x=>x.trim()).filter(Boolean);
+const NETS={facebook:'פייסבוק',instagram:'אינסטגרם',x:'X / טוויטר',tiktok:'טיקטוק',youtube:'יוטיוב',linkedin:'לינקדין',telegram:'טלגרם',whatsapp:'וואטסאפ (מספר)',email:'אימייל',phone:'טלפון'};
+const NH=(k,v)=>k=='whatsapp'?'https://wa.me/'+v.replace(/\D/g,''):k=='email'?'mailto:'+v:k=='phone'?'tel:'+v:v;
+const ALN=['sel',[['start','ימין'],['center','מרכז'],['end','שמאל']]];
+const TYPES={
+hero:{n:'כותרת גדולה',i:'🏞️',d:{t:'ברוכים הבאים',s:'משפט קצר שמסביר על מה האתר',img:'',bt:'',bu:''},f:[['t','כותרת'],['s','תת־כותרת'],['img','תמונת רקע','img'],['bt','טקסט כפתור'],['bu','קישור כפתור']]},
+heading:{n:'כותרת',i:'🔤',d:{t:'כותרת חדשה',l:'2',a:'start'},f:[['t','טקסט'],['l','גודל','sel',[['1','גדולה'],['2','בינונית'],['3','קטנה']]],['a','יישור',...ALN]]},
+text:{n:'טקסט',i:'📝',d:{t:'כתבו כאן את הטקסט שלכם.',a:'start'},f:[['t','טקסט','area'],['a','יישור',...ALN]]},
+image:{n:'תמונה',i:'🖼️',d:{u:'',c:''},f:[['u','תמונה','img'],['c','כיתוב']]},
+gallery:{n:'גלריה',i:'🎞️',d:{u:'',up:[]},f:[['u','קישורי תמונות (שורה לכל תמונה)','area']]},
+youtube:{n:'סרטון יוטיוב',i:'▶️',d:{u:''},f:[['u','הדביקו קישור יוטיוב']]},
+button:{n:'כפתור',i:'🔘',d:{t:'לחצו כאן',u:'',a:'center'},f:[['t','טקסט'],['u','קישור'],['a','יישור',...ALN]]},
+social:{n:'רשתות חברתיות',i:'🔗',d:{a:'center'},f:[...Object.entries(NETS).map(([k,v])=>[k,v]),['a','יישור',...ALN]]},
+form:{n:'טופס יצירת קשר',i:'✉️',d:{to:'',b:'שליחה',f:'שם\nאימייל\n#הודעה'},f:[['to','האימייל שיקבל את הפניות'],['f','שדות (שורה לכל שדה, # בהתחלה = תיבה גדולה)','area'],['b','טקסט כפתור']]},
+map:{n:'מפה',i:'📍',d:{q:''},f:[['q','כתובת או שם מקום']]},
+faq:{n:'שאלות ותשובות',i:'❓',d:{t:'איך מזמינים? | פשוט משאירים פרטים\nכמה זה עולה? | כתבו כאן תשובה'},f:[['t','שאלה | תשובה (שורה לכל שאלה)','area']]},
+embed:{n:'קוד HTML / הטמעה',i:'🧩',d:{c:''},f:[['c','הדביקו קוד הטמעה (אינסטגרם, פייסבוק, ווידג׳טים, iframe...)','area']]},
+divider:{n:'קו מפריד',i:'➖',d:{},f:[]},
+space:{n:'רווח',i:'↕️',d:{h:'40'},f:[['h','גובה בפיקסלים']]}};
+const yt=u=>(String(u).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/)||[])[1];
+const H={
+hero:d=>`<div class="hero" style="${d.img?`background-image:linear-gradient(#0007,#0007),url('${esc(d.img).replace(/'/g,'%27')}')`:''}"><h1>${esc(d.t)}</h1><p>${esc(d.s)}</p>${d.bt?`<a class="btn inv" href="${esc(d.bu)}">${esc(d.bt)}</a>`:''}</div>`,
+heading:d=>{const L=['1','2','3'].includes(String(d.l))?d.l:'2';return`<h${L} style="text-align:${esc(d.a)}">${esc(d.t)}</h${L}>`},
+text:d=>`<p style="text-align:${esc(d.a)};white-space:pre-wrap">${esc(d.t)}</p>`,
+image:d=>d.u?`<figure><img src="${esc(d.u)}" alt="${esc(d.c)}" loading="lazy">${d.c?`<figcaption>${esc(d.c)}</figcaption>`:''}</figure>`:`<div class="ph">🖼️ בחרו תמונה</div>`,
+gallery:d=>{const a=[...lines(d.u),...(d.up||[])];return a.length?`<div class="g">${a.map(u=>`<img src="${esc(u)}" alt="" loading="lazy">`).join('')}</div>`:`<div class="ph">🎞️ הוסיפו תמונות לגלריה</div>`},
+youtube:d=>yt(d.u)?`<div class="v"><iframe src="https://www.youtube-nocookie.com/embed/${yt(d.u)}" allowfullscreen loading="lazy"></iframe></div>`:`<div class="ph">▶️ הדביקו קישור יוטיוב</div>`,
+button:d=>`<p style="text-align:${esc(d.a)}"><a class="btn" href="${esc(d.u)}">${esc(d.t)}</a></p>`,
+social:d=>{const a=Object.keys(NETS).filter(k=>d[k]);return a.length?`<div class="soc" style="justify-content:${d.a=='start'?'flex-start':d.a=='end'?'flex-end':'center'}">${a.map(k=>`<a href="${esc(NH(k,d[k]))}" target="_blank" rel="noopener">${NETS[k].split(' ')[0]}</a>`).join('')}</div>`:`<div class="ph">🔗 הוסיפו קישורים לרשתות</div>`},
+form:d=>d.to?`<form action="https://formsubmit.co/${esc(d.to)}" method="POST"><input type="hidden" name="_captcha" value="false">${lines(d.f).map(l=>l[0]=='#'?`<label>${esc(l.slice(1))}<textarea name="${esc(l.slice(1))}" rows="4" required></textarea></label>`:`<label>${esc(l)}<input name="${esc(l)}" required></label>`).join('')}<button class="btn">${esc(d.b)}</button></form>`:`<div class="ph">✉️ הזינו אימייל לקבלת פניות</div>`,
+map:d=>d.q?`<div class="v m"><iframe src="https://maps.google.com/maps?q=${encodeURIComponent(d.q)}&output=embed" loading="lazy"></iframe></div>`:`<div class="ph">📍 הזינו כתובת</div>`,
+faq:d=>lines(d.t).map(l=>{const[q,...a]=l.split('|');return`<details><summary>${esc(q)}</summary><p>${esc(a.join('|'))}</p></details>`}).join(''),
+embed:(d,ed)=>d.c?(ed?`<iframe class="emb" sandbox srcdoc="${esc(d.c)}"></iframe>`:d.c):`<div class="ph">🧩 הדביקו קוד</div>`,
+divider:()=>'<hr>',space:d=>`<div style="height:${+d.h||0}px"></div>`};
+const SITECSS=`.hero{text-align:center;padding:90px 24px;background:var(--a) center/cover;color:#fff;border-radius:16px}.hero h1{font-size:2.6em;margin:0 0 8px}.hero p{font-size:1.2em;margin:0 0 20px}
+.btn{display:inline-block;background:var(--a);color:#fff;border:0;padding:12px 26px;border-radius:10px;text-decoration:none;font:600 1em inherit;font-family:inherit;cursor:pointer}.btn.inv{background:#fff;color:#111}
+figure{margin:0}figure img{width:100%;border-radius:14px}figcaption{text-align:center;color:#667;font-size:.9em}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.g img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:zoom-in}
+.v{aspect-ratio:16/9}.v iframe,.emb{width:100%;height:100%;border:0;border-radius:12px}.emb{min-height:200px}
+.soc{display:flex;gap:8px;flex-wrap:wrap}.soc a{background:var(--a);color:#fff;padding:8px 16px;border-radius:99px;text-decoration:none}
+form{display:grid;gap:12px}form label{display:grid;gap:4px}form input,form textarea{padding:10px;border:1px solid #cfd6df;border-radius:8px;font:inherit}
+details{border:1px solid #e3e8ee;border-radius:10px;padding:10px 14px;margin:8px 0}summary{cursor:pointer;font-weight:600}
+.ph{padding:30px;text-align:center;background:#f2f5f8;color:#8895a5;border-radius:12px;border:2px dashed #d5dce4}hr{border:0;border-top:1px solid #0002}
+.blk,.b{padding:8px 24px}h1,h2,h3{line-height:1.3}`;
+const mk=(t,d)=>({id:uid(),t,d:{...JSON.parse(JSON.stringify(TYPES[t].d)),...d}});
+let S=null,pg=0,sel=null,hist=[],fut=[];
+try{const c=localStorage.getItem('sb1'),p=JSON.parse(localStorage.getItem('sbp')||'[]');S=(p.find(x=>x.pid==c)||p[0]||{}).data||JSON.parse(c)}catch(e){}
+S=S||{title:'האתר שלי',a:'#0f9d8a',bg:'#ffffff',font:'Heebo',pages:[{id:'home',name:'בית',blocks:[mk('hero',{}),mk('text',{t:'כאן מספרים על העסק, הפרויקט או הרעיון. לחצו על כל אלמנט כדי לערוך אותו, וגררו כדי לשנות סדר.'}),mk('social',{})]}]};
+const save=()=>{S.pid=S.pid||uid();try{localStorage.setItem('sb1',S.pid);const a=getP(),i=a.findIndex(x=>x.pid==S.pid),o={pid:S.pid,title:S.title,t:Date.now(),data:S};i<0?a.push(o):a[i]=o;setP(a)}catch(e){}};
+const snap=()=>{fut=[];hist.push(JSON.stringify(S));if(hist.length>40)hist.shift()};
+const P=()=>S.pages[pg],cur=()=>P().blocks.find(b=>b.id==sel);
+const wrap=(b,ed)=>ed?`<div class="blk ${sel==b.id?'sel':''}" data-id="${b.id}" draggable="true" style="${esc(bs(b))}"><div class="tb"><button data-a="up">↑</button><button data-a="dn">↓</button><button data-a="cp">⧉</button><button data-a="rm">✕</button></div>${H[b.t](b.d,1,b.id)}</div>`:`<div class="b${b.s&&b.s.hm?' hm':''}${rvc(b)}" style="${esc(bs(b))}">${H[b.t](b.d,0,b.id)}</div>`;
+const theme=`--a:${'${S.a}'}`;
+function applyTheme(){const e=$('#page').style;e.setProperty('--a',S.a);e.setProperty('--bg',S.bg);e.setProperty('--f',S.font);e.setProperty('--tx',S.tx||'#1d2433');e.setProperty('--ab',ab(S.a))}
+function rcv(){applyTheme();$('#page').innerHTML=P().blocks.length?P().blocks.map(b=>wrap(b,1)).join(''):'<div class="empty">הדף ריק. לחצו על אלמנט בצד כדי להתחיל ➕</div>';save();window.__i&&__i()}
+function tabs(){$('#tabs').innerHTML=S.pages.map((p,i)=>`<button data-p="${i}" class="${i==pg?'on':''}">${esc(p.name)}</button>`).join('')+'<button data-p="new">＋ דף</button>'}
+function pal(){$('#pal').innerHTML='<h4>הוספת אלמנט</h4>'+Object.entries(TYPES).map(([k,v])=>`<button data-add="${k}">${v.i} ${v.n}</button>`).join('')}
+function props(){const b=cur(),el=$('#props');
+if(!b){el.innerHTML=`<h3>הגדרות האתר</h3><label>שם האתר<input data-s="title" value="${esc(S.title)}"></label><label>צבע ראשי<input type="color" data-s="a" value="${S.a}"></label><label>צבע רקע<input type="color" data-s="bg" value="${S.bg}"></label><label>צבע טקסט<input type="color" data-s="tx" value="${S.tx||'#1d2433'}"></label><label>תיאור לגוגל (SEO)<textarea data-s="desc" placeholder="משפט או שניים על האתר">${esc(S.desc||'')}</textarea></label><label>כתובת האתר (אופציונלי)<input data-s="dom" value="${esc(S.dom||'')}" placeholder="https://example.com"></label><label>אנימציות באתר<select data-s="an">${[['off','ללא'],['soft','עדינות'],['rich','עשירות']].map(([v,n])=>`<option value="${v}" ${(S.an||'soft')==v?'selected':''}>${n}</option>`).join('')}</select></label><label>כפתור וואטסאפ צף (מספר)<input data-s="wa" value="${esc(S.wa||'')}" placeholder="9725XXXXXXXX"></label><label>כתובת שרת פניות (Worker, אופציונלי)<input data-s="api" value="${esc(S.api||'')}" placeholder="https://xxx.workers.dev"></label><label>גופן<select data-s="font">${['Heebo','Assistant','Rubik','Frank Ruhl Libre'].map(f=>`<option ${f==S.font?'selected':''}>${f}</option>`).join('')}</select></label>${S.pages.length>1?'<label><button data-a="delpage">🗑 מחיקת הדף הנוכחי</button></label>':''}<label><button data-a="ren">✏️ שינוי שם הדף</button></label><p class="hint">לחצו על אלמנט בדף כדי לערוך אותו.<br>כשמסיימים – לחצו על 🚀 פרסום.</p>`;return}
+let h=`<h3>${TYPES[b.t].i} ${TYPES[b.t].n}</h3>`;
+for(const[k,l,kind,o]of TYPES[b.t].f){const v=esc(b.d[k]);h+=`<label>${l}`+(kind=='area'?`<textarea data-k="${k}">${v}</textarea>`:kind=='sel'?`<select data-k="${k}">${o.map(([x,n])=>`<option value="${x}" ${b.d[k]==x?'selected':''}>${n}</option>`).join('')}</select>`:kind=='img'?`<input data-k="${k}" value="${v}" placeholder="קישור לתמונה"><input type="file" accept="image/*" data-up="${k}">`:`<input data-k="${k}" value="${v}">`)+'</label>'}
+if(b.t=='gallery')h+=`<label>העלאת תמונות מהמכשיר<input type="file" accept="image/*" multiple data-up="gal"></label>`+(b.d.up||[]).map((u,i)=>`<span class="th"><img src="${u}"><b data-rmi="${i}">×</b></span>`).join('');
+if(b.t=='form')h+='<p class="hint">הטפסים נשלחים דרך שירות חינמי (FormSubmit). בשליחה הראשונה יגיע אליכם מייל אישור – לחצו עליו פעם אחת.</p>';
+el.innerHTML=h+styleUI(b)}
+function readImg(f,cb){const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1400/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.82))};i.src=r.result};r.readAsDataURL(f)}
+function all(){tabs();pal();rcv();props()}
+$('#pal').onclick=e=>{const k=e.target.closest('[data-add]')?.dataset.add;if(!k)return;snap();const b=mk(k,{}),a=P().blocks,i=a.findIndex(x=>x.id==sel);a.splice(i<0?a.length:i+1,0,b);sel=b.id;rcv();props();$('#page').querySelector('.sel')?.scrollIntoView({block:'nearest',behavior:'smooth'})};
+$('#page').onclick=e=>{if(e.target.closest('.cx input,.hd input,.trk input,.trk select,.trk button,.ltr input,.ltr textarea,.ltr button'))return;const bl=e.target.closest('.blk'),a=e.target.closest('[data-a]')?.dataset.a;if(!bl){sel=null;rcv();props();return}
+const id=bl.dataset.id,A=P().blocks,i=A.findIndex(x=>x.id==id);e.preventDefault();
+if(a){snap();if(a=='rm'){A.splice(i,1);sel=null}else if(a=='cp'){const c=JSON.parse(JSON.stringify(A[i]));c.id=uid();A.splice(i+1,0,c);sel=c.id}else{const j=a=='up'?i-1:i+1;if(j>=0&&j<A.length)[A[i],A[j]]=[A[j],A[i]]}}else sel=id;rcv();props()};
+let drag=null;$('#page').ondragstart=e=>{drag=e.target.closest('.blk')?.dataset.id};$('#page').ondragover=e=>e.preventDefault();
+$('#page').ondrop=e=>{e.preventDefault();const t=e.target.closest('.blk')?.dataset.id;if(!drag||!t||t==drag)return;snap();const A=P().blocks,m=A.splice(A.findIndex(x=>x.id==drag),1)[0];A.splice(A.findIndex(x=>x.id==t),0,m);rcv()};
+$('#props').oninput=e=>{const t=e.target;if(t.dataset.k){cur().d[t.dataset.k]=t.value;rcv()}else if(t.dataset.s){S[t.dataset.s]=t.value;rcv()}};
+$('#props').onchange=e=>{const t=e.target,u=t.dataset.up;if(!u||!t.files.length)return;snap();const b=cur();[...t.files].forEach(f=>readImg(f,d=>{if(u=='gal')(b.d.up=b.d.up||[]).push(d);else b.d[u]=d;rcv();props()}))};
+$('#props').onclick=e=>{const a=e.target.dataset.a,r=e.target.dataset.rmi;if(r!=null){snap();cur().d.up.splice(r,1);rcv();props()}
+if(a=='ren'){const n=prompt('שם חדש לדף',P().name);if(n){P().name=n;tabs()}save()}
+if(a=='delpage'&&confirm('למחוק את הדף?')){snap();S.pages.splice(pg,1);pg=0;sel=null;all()}};
+$('#tabs').onclick=e=>{const p=e.target.dataset.p;if(p==null)return;if(p=='new'){const n=prompt('שם הדף החדש');if(!n)return;snap();S.pages.push({id:'p'+uid(),name:n,blocks:[]});pg=S.pages.length-1}else pg=+p;sel=null;all()};
+const undo=()=>{if(!hist.length)return;fut.push(JSON.stringify(S));S=JSON.parse(hist.pop());pg=Math.min(pg,S.pages.length-1);sel=null;all()};
+$('#undo').onclick=undo;addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key=='z'&&!/INPUT|TEXTAREA/.test(e.target.tagName)){e.preventDefault();undo()}});
+const RT=()=>{const s=()=>{const h=location.hash.slice(1)||document.querySelector('main>section').id;document.querySelectorAll('main>section').forEach(x=>x.hidden=x.id!=h);document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')=='#'+h))};addEventListener('hashchange',s);s();
+document.addEventListener('click',e=>{if(e.target.matches('.g img')){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:#000d;display:grid;place-items:center;z-index:99;cursor:zoom-out';o.innerHTML='<img src="'+e.target.src+'" style="max-width:94vw;max-height:94vh;border-radius:8px">';o.onclick=()=>o.remove();document.body.append(o)}})};
+function doc(){const fl='https://fonts.googleapis.com/css2?family='+encodeURIComponent(S.font).replace(/%20/g,'+')+':wght@400;600;800&display=swap';
+return`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(S.title)}</title>${seo()}<link href="${fl}" rel="stylesheet"><style>:root{--a:${S.a};--bg:${S.bg};--f:'${S.font}';--tx:${S.tx||'#1d2433'};--ab:${ab(S.a)}}*{box-sizing:border-box}body{margin:0;font-family:var(--f),Arial,sans-serif;background:var(--bg);color:var(--tx);line-height:1.7}img,iframe{max-width:100%}nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 20px;background:var(--bg);border-bottom:1px solid #8884;position:sticky;top:0;z-index:5}nav b{margin-inline-end:auto;font-size:1.2em}nav a{padding:6px 14px;border-radius:99px;color:inherit;text-decoration:none}nav a.on{background:var(--a);color:#fff}.w{max-width:900px;margin:auto;padding:16px 0 60px}${SITECSS+CSS2+CSS3+MQ+ANIMS+ANIMK}</style></head><body class="an-${S.an||'soft'}"><nav><b>${esc(S.title)}</b>${S.pages.length>1?S.pages.map(p=>`<a href="#${p.id}">${esc(p.name)}</a>`).join(''):''}</nav><main>${S.pages.map(p=>`<section class="w" id="${p.id}">${p.blocks.map(b=>wrap(b,0)).join('')}</section>`).join('')}</main>${S.wa?`<a class="wa" href="https://wa.me/${S.wa.replace(/\D/g,'')}" aria-label="וואטסאפ">💬</a>`:''}<script>(${RT})();(${RT2})();(${RT3})();(${RT4})()<\/script></body></html>`}
+const blob=()=>new Blob([doc()],{type:'text/html'});
+$('#prev').onclick=()=>window.open(URL.createObjectURL(blob()));
+const dl=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click()};
+$('#pub').onclick=()=>{pubZip();return;alert('הורד הקובץ index.html ✅\n\nעכשיו: Cloudflare ← Workers & Pages ← Create ← Pages ← Upload assets, וגוררים אליו את הקובץ. האתר באוויר תוך דקה, בחינם.')};
+$('#bk').onclick=()=>dl(new Blob([JSON.stringify(S)],{type:'application/json'}),'site-backup.json');
+$('#ld').onclick=()=>$('#jf').click();$('#jf').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{snap();S=JSON.parse(t);pg=0;sel=null;all()}catch(x){alert('הקובץ לא תקין')}})};
+const CSS2=`.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}.card{border:1px solid #e3e8ee;border-radius:16px;padding:20px;background:#fff;box-shadow:0 6px 18px #0001}.card h3{margin:0 0 6px;color:var(--a)}.card p{margin:0 0 8px}.card b{font-size:1.3em}
+.cx,.trk,.ltr,.hd{background:#fff;border:1px solid #e3e8ee;border-radius:18px;padding:22px;box-shadow:0 8px 28px #0001}.cx h3,.trk h3,.ltr h3{margin:0 0 8px}
+.cx label,.hd label{display:block;margin:10px 0}.cx input,.hd input,.trk input,.trk select,.ltr input,.ltr textarea{width:100%;padding:10px;border:1px solid #cfd6df;border-radius:8px;font:inherit}
+.res div,.sum div{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef}.res b{color:var(--a);font-size:1.15em}
+.trk .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}.lst{list-style:none;padding:0}.lst li{display:flex;gap:10px;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef}.lst li span{flex:1}.lst small{color:#889}.lst button{border:0;background:0;color:#c00;cursor:pointer}
+.sum div{display:block}.sum i{display:block;height:8px;background:var(--a);border-radius:4px;margin-top:4px}
+.ltr .f{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:12px}.ltr textarea{min-height:260px;line-height:1.7}.ltr .act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}`;
+const CI={mortgage:['מחשבון משכנתא',[['סכום ההלוואה',1000000],['ריבית שנתית %',4.5],['שנים',25]]],loan:['מחשבון הלוואה',[['סכום',100000],['ריבית שנתית %',6],['שנים',5]]],compound:['ריבית דריבית וחיסכון',[['סכום התחלתי',10000],['הפקדה חודשית',1000],['תשואה שנתית %',5],['שנים',20]]],vat:['מע״מ',[['סכום',1000],['שיעור מע״מ %',18]]],sev:['פיצויי פיטורין',[['משכורת אחרונה',10000],['שנות ותק',5]]],vac:['הבראה / פדיון חופשה',[['תעריף ליום',418],['מספר ימים',7]]],net:['שכר נטו מברוטו (הערכה)',[['שכר ברוטו חודשי',15000],['נקודות זיכוי',2.25],['הפרשת עובד לפנסיה %',6]]],emp:['עלות העסקת עובד',[['שכר ברוטו',12000],['תוספות מעסיק %',22]]],ot:['שעות נוספות',[['שכר לשעה',50],['שעות ב־125%',2],['שעות ב־150%',2]]],hr:['תמחור שעת עבודה',[['הכנסה חודשית רצויה',15000],['הוצאות חודשיות',2000],['שעות עבודה בחודש',100]]],pct:['סכום × שיעור',[['סכום',1000000],['שיעור %',3.5]]],pace:['קצב ריצה',[['מרחק בק״מ',10],['זמן בדקות',55]]]};
+Object.assign(TYPES,{
+cards:{n:'כרטיסים / מחירון',i:'🗂️',d:{t:'שירות א | תיאור קצר | ₪100\nשירות ב | תיאור קצר | ₪200'},f:[['t','שורה לכל כרטיס: כותרת | תיאור | מחיר','area']]},
+calc:{n:'מחשבון',i:'🧮',d:{k:'mortgage'},f:[['k','סוג מחשבון','sel',Object.entries(CI).map(([k,v])=>[k,v[0]])]]},
+tracker:{n:'מעקב הוצאות / רשימה',i:'📊',d:{t:'מעקב הוצאות והכנסות',kinds:'הכנסה,הוצאה'},f:[['t','כותרת'],['kinds','סוגי רשומות (מופרדים בפסיק)']]},
+letter:{n:'מחולל מכתבים',i:'📄',d:{h:'מכתב',t:'לכבוד\n{נמען}\n\nשמי {שם מלא}. {תוכן המכתב}\n\nבכבוד רב,\n{שם מלא}'},f:[['h','כותרת'],['t','תבנית (מה שבסוגריים מסולסלים הופך לשדה מילוי)','area']]},
+hdate:{n:'תאריך עברי וגיל',i:'📅',d:{},f:[]}});
+Object.assign(H,{
+cards:d=>`<div class="cards">${lines(d.t).map(l=>{const[a,b,c]=l.split('|').map(x=>x.trim());return`<div class="card"><h3>${esc(a)}</h3><p>${esc(b)}</p>${c?`<b>${esc(c)}</b>`:''}</div>`}).join('')}</div>`,
+calc:d=>{const[c,i]=CI[d.k]||CI.mortgage;return`<div class="cx" data-k="${esc(d.k)}"><h3>${c}</h3>${i.map(([l,v],j)=>`<label>${l}<input type="number" step="any" value="${v}"></label>`).join('')}<div class="res"></div></div>`},
+tracker:(d,e,id)=>`<div class="trk" data-id="${id}" data-kinds="${esc(d.kinds)}"><h3>${esc(d.t)}</h3><div class="row"><input name="n" placeholder="תיאור"><input name="v" type="number" placeholder="סכום"><select>${d.kinds.split(',').map(k=>`<option>${esc(k.trim())}</option>`).join('')}</select><button class="btn" data-ad>הוספה</button></div><div class="sum"></div><ul class="lst"></ul></div>`,
+letter:d=>{const ph=[...new Set(String(d.t).match(/\{[^}]+\}/g)||[])].map(x=>x.slice(1,-1));return`<div class="ltr" data-t="${esc(d.t)}"><h3>${esc(d.h)}</h3><div class="f">${ph.map(p=>`<label>${esc(p)}<input data-ph="${esc(p)}"></label>`).join('')}</div><textarea class="out" readonly>${esc(d.t)}</textarea><div class="act"><button class="btn" data-cp>📋 העתקה</button><button class="btn" data-pr>🖨 הדפסה / PDF</button><button class="btn" data-wa>💬 וואטסאפ</button></div></div>`},
+hdate:()=>`<div class="hd"><h3>תאריך עברי, גיל וימי הולדת</h3><label>בחרו תאריך<input type="date"></label><div class="res"></div></div>`});
+const RT2=()=>{const $$=(s,r=document)=>[...r.querySelectorAll(s)],q=(s,r=document)=>r.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),f=n=>Math.round(n).toLocaleString('he-IL')+' ₪',r=(a,b)=>[a,b];
+const F={mortgage:v=>{const[a,p,y]=v,m=p/1200,n=y*12,x=m?a*m/(1-Math.pow(1+m,-n)):a/n;return[r('החזר חודשי',f(x)),r('סך הכל תשלום',f(x*n)),r('סך הריבית',f(x*n-a))]},
+compound:v=>{let b=v[0];const m=v[2]/1200;for(let i=0;i<v[3]*12;i++)b=b*(1+m)+v[1];const d=v[0]+v[1]*v[3]*12;return[r('סכום סופי',f(b)),r('סך ההפקדות',f(d)),r('רווח',f(b-d))]},
+vat:v=>[r('מחיר כולל מע״מ',f(v[0]*(1+v[1]/100))),r('סכום המע״מ',f(v[0]*v[1]/100)),r('אם הסכום כולל מע״מ: לפני מע״מ',f(v[0]/(1+v[1]/100)))],
+sev:v=>[r('פיצויים משוערים',f(v[0]*v[1]))],vac:v=>[r('סכום לתשלום',f(v[0]*v[1]))],
+net:v=>{const g=v[0],a=g*12,B=[[84120,.1],[120720,.14],[193800,.2],[269280,.31],[560280,.35],[721560,.47],[1e12,.5]];let t=0,p=0;for(const[l,x]of B){if(a>p)t+=(Math.min(a,l)-p)*x;p=l}t=Math.max(0,t-v[1]*2904);const bl=Math.min(g,7522)*.035+Math.max(0,Math.min(g,50695)-7522)*.12,pn=g*v[2]/100;return[r('מס הכנסה',f(t/12)),r('ביטוח לאומי ובריאות',f(bl)),r('פנסיה',f(pn)),r('נטו משוער',f(g-t/12-bl-pn))]},
+emp:v=>[r('עלות חודשית',f(v[0]*(1+v[1]/100))),r('עלות שנתית',f(v[0]*(1+v[1]/100)*12))],
+ot:v=>[r('תוספת לשכר',f(v[0]*(v[1]*1.25+v[2]*1.5)))],
+hr:v=>[r('מחיר מינימלי לשעה',f((v[0]+v[1])/v[2])),r('מחזור שנתי',f((v[0]+v[1])*12))],
+pct:v=>[r('התוצאה',f(v[0]*v[1]/100))],
+pace:v=>[r('קצב',(v[1]/v[0]).toFixed(2)+' דק׳ לק״מ'),r('מהירות',(v[0]/v[1]*60).toFixed(1)+' קמ״ש')]};F.loan=F.mortgage;
+const upd=c=>{const o=(F[c.dataset.k]||F.mortgage)($$('input',c).map(i=>+i.value||0));q('.res',c).innerHTML=o.map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('')};
+const draw=c=>{const ks=c.dataset.kinds.split(',').map(x=>x.trim()).filter(Boolean),a=c._a,s=ks.map(k=>a.filter(x=>x.k==k).reduce((t,x)=>t+x.v,0)),mx=Math.max(...s,1);
+q('.lst',c).innerHTML=a.map((x,i)=>`<li><span>${esc(x.n)} <small>${esc(x.k)}</small></span><b>${f(x.v)}</b><button data-del="${i}">×</button></li>`).join('')||'<li>עדיין אין רשומות</li>';
+q('.sum',c).innerHTML=ks.map((k,i)=>`<div><span>${esc(k)}: <b>${f(s[i])}</b></span><i style="width:${s[i]/mx*100}%"></i></div>`).join('')+(ks.length>1?`<p>הפרש (${esc(ks[0])} פחות השאר): <b>${f(s[0]-s.slice(1).reduce((t,x)=>t+x,0))}</b></p>`:'')};
+const sv=c=>{try{localStorage.setItem(c._k,JSON.stringify(c._a))}catch(e){}draw(c)};
+const tk=c=>{c._k='trk'+location.pathname+c.dataset.id;let a=[];try{a=JSON.parse(localStorage.getItem(c._k))||[]}catch(e){}c._a=a;draw(c)};
+const init=()=>{$$('.cx').forEach(upd);$$('.trk').forEach(tk)};window.__i=init;init();
+document.addEventListener('input',e=>{const c=e.target.closest('.cx,.ltr,.hd');if(!c)return;
+if(c.matches('.cx'))upd(c);else if(c.matches('.ltr')){let o=c.dataset.t;$$('[data-ph]',c).forEach(i=>{if(i.value)o=o.split('{'+i.dataset.ph+'}').join(i.value)});q('.out',c).value=o}
+else{const d=new Date(q('input',c).value);if(isNaN(d))return;const n=new Date(),y=n.getFullYear();let age=y-d.getFullYear(),b=new Date(y,d.getMonth(),d.getDate());if(n<b)age--;if(b<n)b=new Date(y+1,d.getMonth(),d.getDate());
+q('.res',c).innerHTML=[['תאריך עברי',new Intl.DateTimeFormat('he-u-ca-hebrew',{dateStyle:'full'}).format(d)],['גיל',age],['ימים מאז',Math.floor((n-d)/864e5).toLocaleString('he-IL')],['ימים ליום ההולדת הבא',Math.ceil((b-n)/864e5)]].map(([a,x])=>`<div><span>${a}</span><b>${x}</b></div>`).join('')}});
+document.addEventListener('click',e=>{const t=e.target,c=t.closest('.trk'),l=t.closest('.ltr');
+if(c){if('ad'in t.dataset){const n=q('[name=n]',c),v=q('[name=v]',c);if(!n.value&&!v.value)return;c._a.push({n:n.value||'—',v:+v.value||0,k:q('select',c).value});n.value=v.value='';sv(c)}
+if(t.dataset.del!=null){c._a.splice(+t.dataset.del,1);sv(c)}}
+if(l){const x=q('.out',l).value;if('cp'in t.dataset)navigator.clipboard&&navigator.clipboard.writeText(x);if('wa'in t.dataset)open('https://wa.me/?text='+encodeURIComponent(x));if('pr'in t.dataset){const w=open('','_blank');w.document.write('<pre dir="rtl" style="font:17px Arial;white-space:pre-wrap;padding:30px">'+esc(x)+'</pre>');w.document.close();w.print()}}})};
+RT2();
+const site=(t,a,b)=>({title:t,a,bg:'#ffffff',font:'Heebo',pages:[{id:'home',name:'בית',blocks:b}]}),intro=(t,s,b)=>[mk('hero',{t,s}),...b,mk('social',{})];
+const LT=(n,t,o)=>o?n+'\n\n'+t+'\n\nחתימה: ____________':'לכבוד\n{הגורם הנמען}\n\nהנדון: '+n+'\n\nשמי {שם מלא}, ת.ז. {ת.ז.}, כתובת {כתובת}.\n'+t+'\n\nאבקש תשובה בכתב תוך 30 יום.\n\nבכבוד רב,\n{שם מלא}\nטלפון: {טלפון}';
+const MK={L:(t,c,s,cd)=>site(t,c,intro(t,s,[mk('cards',{t:cd}),mk('faq',{}),mk('form',{})])),
+C:(t,c,k)=>site(t,c,intro(t,k=='pct'?'הזינו סכום ושיעור עדכני מהאתר הרשמי':'חישוב מהיר, בחינם וללא הרשמה',[mk('calc',{k}),mk('text',{t:'⚠️ החישוב הוא הערכה בלבד ואינו ייעוץ מקצועי. כדאי לוודא נתונים עדכניים באתרי הממשלה.',a:'center'})])),
+K:(t,c,k)=>site(t,c,intro(t,'מוסיפים רשומה והסיכום והגרף מתעדכנים מיד',[mk('tracker',{t,kinds:k}),mk('text',{t:'🔒 הנתונים נשמרים רק בדפדפן של המשתמש.',a:'center'})])),
+R:(t,c,x,o)=>site(t,c,intro(t,'ממלאים את הפרטים וקבלים טקסט מוכן להעתקה, להדפסה או לשליחה',[mk('letter',{h:t,t:LT(t,x,o)})])),
+LK:(t,c,b)=>site(t,c,[mk('heading',{t,l:'1',a:'center'}),mk('text',{t:'משפט קצר עליך או על העסק',a:'center'}),...b.split(',').map(x=>mk('button',{t:x,a:'center'})),mk('social',{})]),
+HD:(t,c)=>site(t,c,intro(t,'ממיר תאריכים, גיל וימי הולדת',[mk('hdate',{})])),
+FM:(t,c)=>site(t,c,intro(t,'טפסים, סקרים והרשמות בלי קוד',[mk('form',{f:'שם\nאימייל\nמה דעתכם על השירות?\n#הערות'}),mk('text',{t:'שנו את השדות בלחיצה על הטופס. התשובות מגיעות למייל.',a:'center'})]))};
+const CAT={a:'דפי נחיתה ותדמית',b:'מחשבונים',c:'כלכלת הבית',d:'ערעורים ומסמכים',e:'כלים לעסקים',f:'כלים יומיומיים'};
+const TP=[
+['a','עורך דין','L','#1e3a5f','ליווי משפטי אישי, זמין ומקצועי','ייעוץ ראשוני|שיחה קצרה להבנת המקרה|חינם\nליווי מלא|מההתחלה ועד הסוף|לפי הצעה\nייצוג בבית משפט|ניסיון וזמינות|לפי הצעה'],
+['a','קוסמטיקאית','L','#c2477d','טיפולי פנים וציפורניים בסטודיו אישי','טיפולי פנים|ניקוי והזנה עמוקה|₪250\nלק ג׳ל|גימור שמחזיק|₪120\nשעווה|עדין ומקצועי|₪80'],
+['a','אינסטלטור וחשמלאי','L','#e07a1f','הצעת מחיר מהירה, הגעה באותו יום','תיקון תקלות|הגעה באותו יום|מ־₪250\nהתקנות|ברזים, תאורה ולוחות|לפי הצעה\nשירות חירום|24/7|בהתקשרות'],
+['a','ביטוח ומשכנתאות','L','#0b6e99','בדיקה חינם שיכולה לחסוך אלפי שקלים','בדיקת משכנתא|השוואת הצעות|חינם\nביטוח חיים ובריאות|התאמה אישית|ללא עלות\nפנסיה|בדיקה וייעוץ|חינם'],
+['a','מאמן כושר','L','#d6336c','אימון אישי שמתאים לך','אימון אישי|תשומת לב מלאה|₪200\nזוגי|שניים במחיר נוח|₪300\nליווי חודשי|תוכנית ותזונה|₪900'],
+['a','רואה חשבון','L','#2b6a4f','שקט נפשי מול רשויות המס','ניהול ספרים|דיווחים בזמן|מ־₪300\nדוחות שנתיים|יחידים ועסקים|מ־₪1,200\nייעוץ מס|תכנון נכון|₪350'],
+['a','מסעדה או בית קפה','L','#b5382a','אוכל טוב, אווירה טובה','ראשונות|סלטים ומרקים|₪38\nעיקריות|על האש|₪78\nקינוחים|תוצרת בית|₪34'],
+['a','סדנה או קורס','L','#6d28d9','סדנה למתחילים, מקומות מוגבלים','מפגש 1|היכרות ויסודות\nמפגש 2|תרגול מעשי\nמפגש 3|פרויקט סיום'],
+['a','צלם אירועים','L','#222','רגעים שנשארים לתמיד','חתונות|יום מלא|₪6,000\nבר מצווה|צילום ואלבום|₪3,500\nפורטרט|שעה בסטודיו|₪600'],
+['a','קבלן שיפוצים','L','#a15c00','שיפוץ מקצה לקצה, בלי הפתעות','שיפוץ דירה|תכנון וביצוע\nמטבחים ואמבטיות|עיצוב וליווי\nצבע וגבס|מהיר ונקי'],
+['a','קליניקה לטיפול','L','#2c7a7b','מרחב בטוח ומקצועי לשיחה','פגישה ראשונה|היכרות והבנת הצורך\nטיפול שוטף|פגישה שבועית\nאונליין|מכל מקום'],
+['a','דף לאפליקציה','L','#4f46e5','האפליקציה שתעשה לכם סדר','פשוטה|מתחילים תוך דקה\nמהירה|עובדת בכל מכשיר\nחינמית|בלי כרטיס אשראי'],
+['b','משכנתא','C','#0b6e99','mortgage'],['b','שכר נטו מברוטו','C','#2b6a4f','net'],['b','פיצויי פיטורין','C','#7c3aed','sev'],['b','הבראה וחופשה','C','#d97706','vac'],['b','מס שבח ומס רכישה','C','#b91c1c','pct'],['b','החזר מס','C','#0f766e','pct'],['b','עלות העסקת עובד','C','#1d4ed8','emp'],['b','ריבית דריבית','C','#16a34a','compound'],['b','השוואת הלוואות','C','#9333ea','loan'],['b','מע״מ','C','#0891b2','vat'],['b','גמלת אבטלה','C','#be123c','pct'],['b','קצבאות והטבות','C','#ea580c','pct'],['b','ארנונה','C','#4d7c0f','pct'],['b','שעות נוספות','C','#475569','ot'],
+['c','הוצאות והכנסות','K','#0f766e','הכנסה,הוצאה'],['c','תקציב משפחתי','K','#2563eb','הכנסה,אוכל,דיור,רכב,בילויים'],['c','מעקב חובות','K','#b91c1c','חוב,תשלום ששולם'],['c','מנויים והוראות קבע','K','#7c3aed','מנוי חודשי'],['c','חיסכון ליעד','K','#16a34a','הפקדה'],['c','ליסינג מול קנייה','K','#d97706','ליסינג,קנייה'],['c','תקציב אירוע','K','#db2777','אולם,קייטרינג,צילום,אחר'],['c','חשבונות הבית','K','#0891b2','חשמל,מים,ארנונה,גז'],['c','תכנון פנסיה','K','#475569','חיסכון,הוצאה צפויה'],['c','חלוקת הוצאות','K','#ea580c','שילם א,שילם ב'],
+['d','ערעור על דוח חניה','R','#1d4ed8','בתאריך {תאריך} קיבלתי דוח חניה מס׳ {מספר דוח} ברחוב {רחוב}, רכב {מספר רכב}. אני מערער/ת על הדוח מהסיבה: {הסיבה}. אבקש לבטלו.'],
+['d','ערעור על דוח תנועה','R','#b91c1c','קיבלתי דוח מס׳ {מספר דוח} על עבירה מיום {תאריך}. אני מבקש/ת לבטלו מהסיבה: {הסיבה}. מצורפות ראיות.'],
+['d','ערעור ארנונה','R','#4d7c0f','אני מערער/ת על חיוב הארנונה לנכס ב{כתובת הנכס}, חשבון {מספר חשבון}. הטענה: {הטענה}. אבקש תיקון החיוב והחזר הפרשים.'],
+['d','מכתב התראה לפני תביעה','R','#7c3aed','ביום {תאריך} {מה קרה}. נגרם לי נזק בסך {סכום} ₪. אני דורש/ת תשלום תוך 14 ימים, ובאין תשובה אפנה לערכאות.'],
+['d','תביעה קטנה','R','#0f766e','אני תובע/ת את {שם הנתבע}, כתובת {כתובת הנתבע}, בסך {סכום} ₪. העובדות: {תיאור המקרה}. הנזק: {פירוט}. אבקש חיוב בסכום, הוצאות ושכר טרחה.'],
+['d','דרישה מחברת ביטוח','R','#0b6e99','מספר פוליסה {מספר}. בתאריך {תאריך} אירע {האירוע}. אני דורש/ת {הדרישה}. מצורפים מסמכים.'],
+['d','ערעור על חיוב שגוי','R','#ea580c','קיבלתי חיוב של {סכום} ₪ בתאריך {תאריך} עבור {שירות}. החיוב שגוי כי {הסיבה}. אבקש ביטול והחזר כספי.'],
+['d','חוזה שכירות','R','#475569','בין {שם משכיר} ת.ז. {ת.ז. משכיר} לבין {שם שוכר} ת.ז. {ת.ז. שוכר}: הדירה ב{כתובת הדירה} מושכרת ל{תקופה} בדמי שכירות {סכום} ₪ לחודש, פיקדון {פיקדון}. השוכר ישלם חשבונות שוטפים. החוזה כפוף לדין הישראלי.',1],
+['d','ייפוי כוח','R','#1e3a5f','אני {שם מלא}, ת.ז. {ת.ז.}, ממנה את {שם מיופה הכוח}, ת.ז. {ת.ז. מיופה}, לפעול בשמי בעניין {העניין}. בתוקף עד {תאריך}.',1],
+['d','מכתב התפטרות','R','#9333ea','אני מודיע/ה על התפטרותי מתפקידי כ{תפקיד} החל מיום {תאריך}, בכפוף להודעה מוקדמת כדין. אבקש את כל זכויותיי, כולל פיצויים והבראה, ואישור העסקה.'],
+['e','הצעת מחיר','R','#0f766e','הצעת מחיר מס׳ {מספר} – {שם העסק}\nלכבוד {שם הלקוח}, תאריך {תאריך}\nשירות: {תיאור}\nמחיר: {סכום} ₪ + מע״מ\nתוקף ההצעה: {תוקף}',1],
+['e','חשבונית וקבלה','R','#1d4ed8','קבלה מס׳ {מספר} – {שם העסק}, עוסק {מס׳ עוסק}\nתאריך: {תאריך}\nשולם על ידי: {שם הלקוח}\nעבור: {תיאור}\nסכום: {סכום} ₪',1],
+['e','כרטיס ביקור דיגיטלי','LK','#111827','שמרו איש קשר,התקשרו,וואטסאפ,האתר שלי'],
+['e','דף קישורים (Linktree)','LK','#c2477d','האתר שלי,הזמנת שיחה,הרשמה לניוזלטר,החנות'],
+['e','ניהול לקוחות ופניות','K','#2563eb','חדש,בטיפול,נסגר'],
+['e','הודעות וואטסאפ ללקוחות','R','#16a34a','היי {שם הלקוח}, תודה שפנית ל{שם העסק}! {ההודעה}. נשמח לעזור, {שם שולח}.',1],
+['e','תמחור שעת עבודה','C','#0f766e','hr'],
+['f','תאריך עברי','HD','#7c3aed'],['f','גיל וימי הולדת','HD','#db2777'],['f','רשימת קניות','K','#16a34a','קניות'],['f','אירועים משפחתיים','K','#7c3aed','אירוע'],['f','קצב ריצה','C','#ea580c','pace'],['f','מחולל טפסים וסקרים','FM','#2563eb']];
+document.body.insertAdjacentHTML('beforeend','<div id="tp" hidden></div>');
+const s3=document.createElement('style');s3.textContent='#tp{position:fixed;inset:0;background:#000a;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px}#tp[hidden]{display:none}#tp .bx{background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:20px}#tp h2{margin:0 0 4px}#tp h4{margin:16px 0 6px;color:#0f9d8a}#tp .x{font:inherit;border:1px solid #d5dce4;background:#f6f8fa;border-radius:20px;padding:7px 14px;margin:3px;cursor:pointer}#tp .x:hover{background:#dff3ef}';document.head.append(s3);
+const gal=()=>{$('#tp').innerHTML=`<div class="bx"><h2>📚 תבניות מוכנות</h2><p class="hint">100 תבניות × 3 מבנים = 300 אתרים. בחרו מבנה וסגנון ואז תבנית.</p><label>מבנה<select id="tv"><option value="0">בסיסי</option><option value="1">עשיר: מספרים, שלבים, המלצות</option><option value="2">מקצועי: גם טקסט רץ ומחירון, אנימציות עשירות</option></select></label><label>סגנון עיצוב<select id="ts"><option value="">כברירת מחדל של התבנית</option>${Object.entries(STY).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('')}</select></label><button class="x" data-i="-1">⬜ דף ריק</button><button class="x" data-c>✕ סגירה</button>${Object.entries(CAT).map(([k,v])=>`<h4>${v}</h4>`+TP.map((x,i)=>x[0]==k?`<button class="x" data-i="${i}">${x[1]}</button>`:'').join('')).join('')}</div>`;$('#tp').hidden=false};
+$('#tp').onclick=e=>{const t=e.target;if(t.id=='tp'||'c'in t.dataset)$('#tp').hidden=true;else if(t.dataset.i!=null){const i=+t.dataset.i,x=TP[i];snap();S=i<0?site('האתר שלי','#0f9d8a',[]):variant(MK[x[2]](x[1],...x.slice(3)),+$('#tv').value,$('#ts').value);pg=0;sel=null;all();$('#tp').hidden=true}};
+$('#tpl').onclick=gal;
+const ab=h=>{const n=parseInt(String(h).slice(1),16),l=(.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255;return l>.6?'#111':'#fff'};
+const CSS3=`.card,.cx,.trk,.ltr,.hd,details{color:#1d2433;background:#fff}.hero{background-image:linear-gradient(135deg,#0004,#000a)}.btn,.soc a,nav a.on{color:var(--ab,#fff)}.btn.inv{color:#111}`;
+const seo=()=>(S.desc?`<meta name="description" content="${esc(S.desc)}"><meta property="og:description" content="${esc(S.desc)}">`:'')+`<meta property="og:title" content="${esc(S.title)}"><meta property="og:type" content="website">`+(S.dom?`<link rel="canonical" href="${esc(S.dom)}/"><meta property="og:url" content="${esc(S.dom)}/">`:'');
+const getP=()=>{try{return JSON.parse(localStorage.getItem('sbp'))||[]}catch(e){return[]}};
+const setP=a=>{try{localStorage.setItem('sbp',JSON.stringify(a))}catch(e){alert('אין מספיק מקום באחסון הדפדפן. מחקו אתר או תמונות כבדות.')}};
+const STY={luxury:['יוקרתי שחור־זהב','#d4af37','#0e0e10','#f1ece0','Frank Ruhl Libre'],dark:['כהה מודרני','#38bdf8','#0f172a','#e2e8f0','Heebo'],modern:['מודרני בהיר','#2563eb','#ffffff','#1d2433','Rubik'],minimal:['מינימליסטי','#111827','#fafafa','#222222','Assistant'],color:['צבעוני','#e11d48','#fff7ed','#3b2a20','Rubik']};
+const KIND={biz:['עסק או שירות','שירות א|מה הלקוח מקבל\nשירות ב|למי זה מתאים\nשירות ג|מה מייחד אותנו'],shop:['חנות או קטלוג','מוצר א|תיאור קצר\nמוצר ב|תיאור קצר\nמוצר ג|תיאור קצר'],food:['מסעדה או אירוח','ראשונות|תיאור קצר\nעיקריות|תיאור קצר\nקינוחים|תיאור קצר'],health:['בריאות ויופי','טיפול א|תיאור קצר\nטיפול ב|תיאור קצר\nפגישת היכרות|תיאור קצר'],edu:['חינוך וקורסים','מפגש 1|נושא\nמפגש 2|נושא\nמפגש 3|נושא'],port:['תיק עבודות','פרויקט א|תיאור קצר\nפרויקט ב|תיאור קצר\nפרויקט ג|תיאור קצר'],ngo:['עמותה וקהילה','המטרה שלנו|תיאור קצר\nאיך לעזור|תרומה והתנדבות\nפעילות|אירועים קרובים'],land:['דף נחיתה','הבעיה|מה מפריע ללקוח\nהפתרון|מה אתם מציעים\nהתוצאה|מה הלקוח מרוויח']};
+const gen=o=>{const[,a,bg,tx,font]=STY[o.st],k=KIND[o.k],has=(l,x)=>l.includes(x),H1=t=>mk('heading',{t,l:'1',a:'center'});
+const home=[mk('hero',{t:o.n,s:o.d||'כאן כותבים משפט קצר שמסביר על האתר'}),mk('text',{t:'ספרו כאן במשפטים קצרים מי אתם ומה מייחד אתכם.',a:'center'})];
+if(has(o.pg,'srv'))home.push(mk('cards',{t:k[1]}));if(has(o.fn,'yt'))home.push(mk('youtube',{}));home.push(mk('social',{}));
+const P=[{id:'home',name:'בית',blocks:home}];
+if(has(o.pg,'gal'))P.push({id:'gallery',name:'גלריה',blocks:[H1('גלריה'),mk('gallery',{})]});
+if(has(o.pg,'rev'))P.push({id:'reviews',name:'המלצות',blocks:[H1('המלצות'),mk('cards',{t:'שם הלקוח|הדביקו כאן המלצה אמיתית\nשם הלקוח|הדביקו כאן המלצה אמיתית'})]});
+if(has(o.pg,'faq'))P.push({id:'faq',name:'שאלות נפוצות',blocks:[H1('שאלות נפוצות'),mk('faq',{})]});
+if(has(o.pg,'con')){const c=[H1('צור קשר')];if(has(o.fn,'wa'))c.push(mk('button',{t:'💬 שלחו הודעה בוואטסאפ',u:'https://wa.me/972',a:'center'}));if(has(o.fn,'form'))c.push(mk('form',{}));if(has(o.fn,'map'))c.push(mk('map',{}));c.push(mk('social',{}));P.push({id:'contact',name:'צור קשר',blocks:c})}
+return{title:o.n,a,bg,tx,font,desc:o.d||'',pages:P}};
+let dvi=0;const DV=[['🖥 מחשב','100%'],['▭ טאבלט','768px'],['📱 טלפון','390px']];
+$('#dv').onclick=()=>{dvi=(dvi+1)%3;$('#dv').textContent=DV[dvi][0];const p=$('#page');p.style.maxWidth=DV[dvi][1];p.style.margin='0 auto'};
+const redo=()=>{if(!fut.length)return;hist.push(JSON.stringify(S));S=JSON.parse(fut.pop());pg=Math.min(pg,S.pages.length-1);sel=null;all()};
+$('#redo').onclick=redo;addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&(e.key=='y'||e.key=='Z')&&!/INPUT|TEXTAREA/.test(e.target.tagName)){e.preventDefault();redo()}});
+document.body.insertAdjacentHTML('beforeend','<div id="dm" hidden></div>');
+const dash=()=>{const a=getP().sort((x,y)=>y.t-x.t);$('#dm').innerHTML=`<div class="bx"><h2>🏠 האתרים שלי</h2><button class="x" data-z="wz">✨ אתר חדש באשף</button><button class="x" data-z="tp">📚 תבניות</button><button class="x" data-z="imp">📂 ייבוא פרויקט</button><button class="x" data-z="cl">✕ סגירה</button><label><input id="dq" placeholder="חיפוש אתרים"></label>${a.map(p=>`<div class="pr" data-t="${esc(p.title)}"><b>${esc(p.title)}</b> <small>${new Date(p.t).toLocaleDateString('he-IL')}</small><br><button class="x" data-o="${p.pid}">פתיחה</button><button class="x" data-d="${p.pid}">שכפול</button><button class="x" data-e="${p.pid}">ייצוא</button><button class="x" data-r="${p.pid}">מחיקה</button></div>`).join('')||'<p class="hint">עדיין אין אתרים.</p>'}</div>`;$('#dm').hidden=false};
+const wz=()=>{$('#dm').innerHTML=`<div class="bx"><h2>✨ אשף יצירת אתר</h2><p class="hint">יצירה מקומית לפי תבניות וכללים, בלי AI חיצוני. אחרי היצירה אפשר לערוך כל פרט.</p><label>1. שם האתר או העסק<input id="w_n" placeholder="למשל: סטודיו נועה"></label><label>2. סוג האתר<select id="w_k">${Object.entries(KIND).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('')}</select></label><label>3. מטרה וקהל יעד (משפט אחד)<input id="w_d" placeholder="למשל: שיפוצים לדירות בגוש דן"></label><label>4. סגנון עיצובי<select id="w_s">${Object.entries(STY).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('')}</select></label><p>5. עמודים</p>${[['srv','שירותים'],['gal','גלריה'],['rev','המלצות'],['faq','שאלות נפוצות'],['con','צור קשר']].map(([k,v])=>`<label class="ck"><input type="checkbox" data-pg="${k}" checked> ${v}</label>`).join('')}<p>6. פונקציות</p>${[['wa','וואטסאפ'],['form','טופס פניות'],['map','מפה'],['yt','סרטון']].map(([k,v])=>`<label class="ck"><input type="checkbox" data-fn="${k}" ${k=='yt'?'':'checked'}> ${v}</label>`).join('')}<p><button class="x" id="wmk">🚀 יצירת האתר</button><button class="x" data-z="dsh">חזרה</button><button class="x" data-z="cl">ביטול</button></p></div>`;$('#dm').hidden=false};
+const create=()=>{const g=s=>[...document.querySelectorAll(s+':checked')].map(x=>x.dataset.pg||x.dataset.fn).join(','),n=$('#w_n').value.trim()||'האתר שלי';snap();S=gen({n,k:$('#w_k').value,d:$('#w_d').value.trim(),st:$('#w_s').value,pg:g('[data-pg]'),fn:g('[data-fn]')});pg=0;sel=null;all();$('#dm').hidden=true};
+$('#dsh').onclick=dash;
+$('#dm').onclick=e=>{const t=e.target,d=t.dataset;if(t.id=='dm'||d.z=='cl')$('#dm').hidden=true;else if(d.z=='wz')wz();else if(d.z=='dsh')dash();else if(d.z=='tp'){$('#dm').hidden=true;gal()}else if(d.z=='imp'){$('#dm').hidden=true;$('#jf').click()}else if(t.id=='wmk')create();
+else if(d.o){const p=getP().find(x=>x.pid==d.o);if(p){S=p.data;pg=0;sel=null;hist=[];fut=[];save();all();$('#dm').hidden=true}}
+else if(d.d){const p=getP().find(x=>x.pid==d.d);if(p){const c=JSON.parse(JSON.stringify(p.data));c.pid=uid();c.title+=' (עותק)';const a=getP();a.push({pid:c.pid,title:c.title,t:Date.now(),data:c});setP(a);dash()}}
+else if(d.e){const p=getP().find(x=>x.pid==d.e);p&&dl(new Blob([JSON.stringify(p.data)],{type:'application/json'}),'site-backup.json')}
+else if(d.r&&confirm('למחוק את האתר לצמיתות?')){setP(getP().filter(x=>x.pid!=d.r));if(S.pid==d.r){S=site('האתר שלי','#d4af37',[]);S.pid=uid();pg=0;sel=null;all()}dash()}};
+$('#dm').oninput=e=>{if(e.target.id=='dq')document.querySelectorAll('#dm .pr').forEach(x=>x.hidden=!x.dataset.t.includes(e.target.value))};
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=-1;for(const x of b)c=crcT[(c^x)&255]^(c>>>8);return(c^-1)>>>0};
+const zip=files=>{const E=new TextEncoder(),ch=[],cd=[],u16=n=>[n&255,n>>8&255],u32=n=>[n&255,n>>8&255,n>>16&255,n>>>24];let off=0;
+for(const[n,t]of files){const nm=E.encode(n),d=E.encode(t),c=crc(d),L=[80,75,3,4,20,0,0,8,0,0,0,0,33,0,...u32(c),...u32(d.length),...u32(d.length),...u16(nm.length),0,0];
+ch.push(new Uint8Array([...L,...nm]),d);cd.push(new Uint8Array([80,75,1,2,20,0,20,0,0,8,0,0,0,0,33,0,...u32(c),...u32(d.length),...u32(d.length),...u16(nm.length),...Array(12).fill(0),...u32(off),...nm]));off+=L.length+nm.length+d.length}
+const cs=cd.reduce((a,x)=>a+x.length,0);return new Blob([...ch,...cd,new Uint8Array([80,75,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(cs),...u32(off),0,0])],{type:'application/zip'})};
+const pubZip=()=>{const dm=(S.dom||'').replace(/\/$/,''),f=[['index.html',doc()],['404.html','<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>404</title></head><body style="font-family:Arial,sans-serif;text-align:center;padding:12vh 20px"><h1>404</h1><p>הדף לא נמצא.</p><a href="/">חזרה לדף הבית</a></body></html>'],['robots.txt','User-agent: *\nAllow: /\n'+(dm?'Sitemap: '+dm+'/sitemap.xml\n':'')],['README.txt','האתר שלך מוכן.\n\nפרסום חינם ב-Cloudflare Pages:\n1. Workers & Pages > Create > Pages > Upload assets\n2. גוררים את התיקייה (או הקובץ הזה אחרי חילוץ)\n3. Deploy. האתר באוויר בכתובת pages.dev.\n\nעדכון: בונים מחדש בבונה, מורידים ZIP, ומעלים שוב.\nחיבור דומיין אישי דורש רכישת דומיין (בתשלום), וניתן לחבר אותו ב-Cloudflare.\n']];
+if(dm)f.push(['sitemap.xml','<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>'+dm+'/</loc></url></urlset>\n']);
+dl(zip(f),'site.zip');alert('הורד site.zip ✅ (אתר, דף 404, robots.txt, הוראות).\n\nב-Cloudflare: Workers & Pages ← Create ← Pages ← Upload assets, והעלו את התיקייה אחרי חילוץ. חינם.')};
+const sc=c=>'#page '+c.replace(/\}(?=[^}])/g,'}#page ').replace(/,(?=[^}]*\{)/g,',#page ');
+const s5=document.createElement('style');s5.textContent=sc(CSS2+CSS3)+`:root{--ink:#0b0b0d;--ac:#d4af37}body{background:#101014}#top{border-bottom:1px solid #d4af3755}#top b{color:#d4af37;letter-spacing:.5px}#top button.go{color:#111}#tabs button.on{background:#d4af37;color:#111}.pal,#props{background:#16161c;color:#eee;border-color:#2a2a33}.pal button{background:#22222b;color:#eee}.pal button:hover{background:#3a321a}#props label,.hint{color:#b9b3a3}#props input:not([type=color],[type=file]),#props textarea,#props select{background:#0e0e12;color:#f1ece0;border-color:#3a3a46}#cv{background:#101014}#page{color:var(--tx,#1d2433)}.blk.sel{outline-color:#d4af37}.tb{background:#d4af37}.tb button{color:#111}#tp .bx,#dm .bx{background:#15151a;color:#f1ece0}#tp .x,#dm .x{background:#24242c;color:#f1ece0;border-color:#3a3a46}#tp .x:hover,#dm .x:hover{background:#3a321a}#tp h4{color:#d4af37}`;
+const s4=document.createElement('style');s4.textContent=s3.textContent.replace(/#tp/g,'#dm')+'#dm label{display:block;margin:10px 0}#dm input:not([type=checkbox]),#dm select{width:100%;padding:9px;border-radius:8px;border:1px solid #3a3a46;background:#0e0e12;color:#f1ece0;font:inherit}#dm label.ck{display:inline-flex;gap:4px;margin:4px 12px 4px 0}#dm .pr{padding:10px 0;border-bottom:1px solid #2a2a33}';
+document.head.append(s4);setTimeout(()=>document.head.append(s5),0);
+try{if(!localStorage.getItem('sb1'))wz()}catch(e){}
+/* ===== שלב 2: סגנון בלוק, עמודות, חנות, שרת פניות, תבניות 100, עוזר מקומי ===== */
+const AP=()=>(S.api||'').trim().replace(/\/$/,''),MQ='@media(max-width:700px){.hm{display:none}}';
+const bs=b=>{const s=b.s||{};return(s.w?`max-width:${s.w}%;margin-inline:${s.al=='start'?'0 auto':s.al=='end'?'auto 0':'auto'};`:'')+(s.pd?`padding:${s.pd}px;`:'')+(s.bg?`background:${s.bg};`:'')+(s.rd?`border-radius:${s.rd}px;`:'')+(s.sh?'box-shadow:0 10px 30px #0003;':'')};
+const styleUI=b=>{const s=b.s||{};return`<details style="margin-top:14px"><summary>🎨 עיצוב הבלוק</summary><label>רוחב %<input type="range" min="20" max="100" step="5" data-st="w" value="${s.w||100}"></label><label>יישור<select data-st="al"><option value="center">מרכז</option><option value="start" ${s.al=='start'?'selected':''}>ימין</option><option value="end" ${s.al=='end'?'selected':''}>שמאל</option></select></label><label>ריפוד<input type="range" min="0" max="80" data-st="pd" value="${s.pd||0}"></label><label>אנימציית הופעה<select data-st="an">${[['','ברירת מחדל'],['none','ללא'],['fade','דהייה'],['up','מלמטה'],['zoom','זום'],['side','מהצד']].map(([v,n])=>`<option value="${v}" ${s.an==v?'selected':''}>${n}</option>`).join('')}</select></label><label>צבע רקע<input type="color" data-st="bg" value="${s.bg||'#ffffff'}"></label><label>פינות מעוגלות<input type="range" min="0" max="40" data-st="rd" value="${s.rd||0}"></label><label><input type="checkbox" data-st="sh" ${s.sh?'checked':''}> צל</label><label><input type="checkbox" data-st="hm" ${s.hm?'checked':''}> הסתרה בטלפון</label></details>`};
+$('#props').addEventListener('input',e=>{const t=e.target,k=t.dataset.st,b=cur();if(!k||!b)return;b.s=b.s||{};b.s[k]=t.type=='checkbox'?t.checked:t.value;rcv()});
+Object.assign(TYPES,{
+cols:{n:'עמודות',i:'▥',d:{n:'2',c1:'# כותרת ראשונה\nטקסט קצר לעמודה הראשונה',c2:'# כותרת שנייה\nטקסט קצר לעמודה השנייה',c3:'# כותרת שלישית\nטקסט קצר'},f:[['n','מספר עמודות','sel',[['2','2'],['3','3']]],['c1','עמודה 1 (שורה עם # = כותרת, שורה עם img: = תמונה)','area'],['c2','עמודה 2','area'],['c3','עמודה 3','area']]},
+shop:{n:'חנות ועגלת קניות',i:'🛍️',d:{t:'המוצרים שלנו',items:'דוגמה: מוצר א|100|החליפו בתיאור אמיתי\nדוגמה: מוצר ב|150|החליפו בתיאור אמיתי',cur:'₪',wa:''},f:[['t','כותרת'],['items','מוצרים: שם | מחיר | תיאור | קישור תמונה (שורה לכל מוצר)','area'],['cur','מטבע'],['wa','וואטסאפ לקבלת הזמנות (מספר, אופציונלי)']]}});
+const F0=H.form;
+Object.assign(H,{
+cols:d=>{const n=+d.n||2,r=s=>lines(s).map(l=>l.startsWith('# ')?`<h3>${esc(l.slice(2))}</h3>`:l.startsWith('img:')?`<img src="${esc(l.slice(4).trim())}" alt="" style="width:100%;border-radius:12px">`:`<p>${esc(l)}</p>`).join('');return`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(${n==3?200:260}px,1fr));gap:20px">${[d.c1,d.c2,d.c3].slice(0,n).map(c=>`<div>${r(c)}</div>`).join('')}</div>`},
+shop:d=>`<div class="shop" data-api="${esc(AP())}" data-wa="${esc(d.wa)}" data-cur="${esc(d.cur)}"><h2>${esc(d.t)}</h2><div class="cards">${lines(d.items).map(l=>{const[n,p,ds,im]=l.split('|').map(x=>x.trim());return`<div class="card">${im?`<img src="${esc(im)}" alt="${esc(n)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">`:''}<h3>${esc(n)}</h3><p>${esc(ds||'')}</p><b>${esc(p)} ${esc(d.cur)}</b><br><button class="btn add" data-n="${esc(n)}" data-p="${esc(p)}">הוספה לעגלה</button></div>`}).join('')}</div></div>`,
+form:(d,...r)=>AP()?`<form data-api="${esc(AP())}"><input type="text" name="_h" style="display:none" tabindex="-1" autocomplete="off">${lines(d.f).map(l=>l[0]=='#'?`<label>${esc(l.slice(1))}<textarea name="${esc(l.slice(1))}" rows="4" required></textarea></label>`:`<label>${esc(l)}<input name="${esc(l)}" required></label>`).join('')}<button class="btn">${esc(d.b)}</button></form>`:F0(d,...r)});
+const RT3=()=>{const q=(s,r=document)=>r.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.addEventListener('submit',async e=>{const f=e.target.closest('form[data-api]');if(!f)return;e.preventDefault();const b=q('button',f),o={};new FormData(f).forEach((v,k)=>o[k]=v);o._src=location.href;b.disabled=true;try{const r=await fetch(f.dataset.api+'/api/form',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)});if(!r.ok)throw 0;f.innerHTML='<p style="text-align:center;font-weight:600">✅ תודה! הפנייה התקבלה.</p>'}catch(x){b.disabled=false;alert('השליחה נכשלה. נסו שוב.')}});
+const sh=q('.shop');if(!sh)return;const cur=sh.dataset.cur||'₪',K='cart'+location.pathname;let C=[];try{C=JSON.parse(localStorage.getItem(K))||[]}catch(e){}
+const tot=()=>C.reduce((t,x)=>t+x.p*x.q,0),cnt=()=>C.reduce((t,x)=>t+x.q,0),fab=document.createElement('button'),pn=document.createElement('div');
+fab.style.cssText='position:fixed;bottom:18px;inset-inline-start:18px;z-index:40;background:var(--a);color:var(--ab,#fff);border:0;border-radius:99px;padding:14px 20px;font:600 1em inherit;box-shadow:0 6px 20px #0004;cursor:pointer';pn.style.cssText='position:fixed;inset:0;background:#000a;z-index:60;display:none;justify-content:center;align-items:center;padding:14px';document.body.append(fab,pn);
+const box=h=>`<div style="background:#fff;color:#1d2433;border-radius:16px;max-width:460px;width:100%;max-height:90vh;overflow:auto;padding:20px">${h}</div>`;
+const sv=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}fab.textContent='🛒 '+cnt()},draw=()=>{pn.innerHTML=box('<h3 style="margin:0 0 10px">העגלה שלי</h3>'+(C.length?C.map((x,i)=>`<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #eee"><span style="flex:1">${esc(x.n)}</span><button data-q="${i}|-1">−</button><b>${x.q}</b><button data-q="${i}|1">+</button><span>${x.p*x.q} ${esc(cur)}</span></div>`).join('')+`<p><b>סה״כ: ${tot()} ${esc(cur)}</b></p><form style="display:grid;gap:8px"><input name="שם" placeholder="שם מלא" required><input name="טלפון" placeholder="טלפון" required><textarea name="הערות" placeholder="כתובת והערות להזמנה"></textarea><button class="btn">שליחת הזמנה</button></form><p style="font-size:.85em;color:#667">ההזמנה נשלחת לבעל האתר. אין תשלום באתר.</p>`:'<p>העגלה ריקה.</p>')+'<button data-x>סגירה</button>')};sv();
+fab.onclick=()=>{draw();pn.style.display='flex'};
+document.addEventListener('click',e=>{const a=e.target.closest('.add');if(!a)return;const p=parseFloat(a.dataset.p.replace(/[^\d.]/g,''))||0,x=C.find(i=>i.n==a.dataset.n);x?x.q++:C.push({n:a.dataset.n,p,q:1});sv();a.textContent='נוסף ✓';setTimeout(()=>a.textContent='הוספה לעגלה',900)});
+pn.addEventListener('click',e=>{const t=e.target;if(t==pn||t.dataset.x!=null)pn.style.display='none';else if(t.dataset.q){const[i,d]=t.dataset.q.split('|');C[i].q+=+d;if(C[i].q<1)C.splice(i,1);sv();draw()}});
+pn.addEventListener('submit',async e=>{e.preventDefault();const o={};new FormData(e.target).forEach((v,k)=>o[k]=v);const api=sh.dataset.api,wa=(sh.dataset.wa||'').replace(/\D/g,''),txt='הזמנה חדשה:\n'+C.map(x=>x.q+' × '+x.n+' – '+x.p*x.q+' '+cur).join('\n')+'\nסה״כ: '+tot()+' '+cur+'\n'+Object.entries(o).map(([k,v])=>k+': '+v).join('\n');
+if(api){try{const r=await fetch(api+'/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:C,total:tot(),currency:cur,customer:o,_src:location.href})});if(!r.ok)throw 0;C=[];sv();pn.innerHTML=box('<h3>✅ ההזמנה התקבלה</h3><p>נחזור אליכם בהקדם.</p><button data-x>סגירה</button>')}catch(x){alert('השליחה נכשלה. נסו שוב.')}}else if(wa)open('https://wa.me/'+wa+'?text='+encodeURIComponent(txt));else alert('בעל האתר עדיין לא הגדיר קבלת הזמנות.')})};
+/* תבניות נוספות: 100 בסך הכול */
+Object.assign(CAT,{g:'חנויות ומסחר',h:'אירוח, בריאות, חינוך ויצירה'});
+MK.S=(t,c,s,n)=>site(t,c,intro(t,s,[mk('shop',{items:n.split(',').map(x=>`דוגמה: ${x}|100|החליפו בתיאור אמיתי`).join('\n')}),mk('faq',{}),mk('form',{})]));
+TP.push(
+['a','חברת בנייה','L','#7c4a1d','בונים בית שנשאר לשנים','תכנון והיתרים|ליווי מלא\nבנייה|ביצוע לפי לוחות זמנים\nמסירה|בדק בית ואחריות'],
+['a','חברת ניקיון','L','#0891b2','בית נקי, בלי להתאמץ','ניקיון דירות|חד־פעמי או קבוע\nמשרדים|תחזוקה שוטפת\nאחרי שיפוץ|ניקיון יסודי'],
+['a','חברת אבטחה','L','#1f2937','אבטחה מקצועית לעסקים','שמירה|מאבטחים מוסמכים\nמצלמות ואזעקות|התקנה ומעקב\nייעוץ|בדיקת סיכונים'],
+['a','חברת הובלות','L','#c2410c','הובלה בטוחה ובזמן','הובלת דירה|ארגון ואריזה\nמשרדים|בלי הפסקת עבודה\nמנוף|במקומות קשים'],
+['a','חברת מחשבים','L','#2563eb','תמיכה טכנית שמבינה אותך','תיקון מחשבים|אבחון מהיר\nרשתות ואבטחה|לעסקים ולבית\nגיבוי ושחזור|שומרים על המידע'],
+['a','חברת שיווק','L','#7c3aed','שיווק שמביא לקוחות','ניהול רשתות|תוכן ותוצאות\nקמפיינים|ממומן ואורגני\nדפי נחיתה|מותאמים להמרה'],
+['a','חברת ייעוץ','L','#0f766e','ייעוץ עסקי מותאם אישית','אבחון עסקי|הבנת המצב\nתוכנית עבודה|צעדים ברורים\nליווי|עד התוצאה'],
+['a','משרד תיווך ונדל״ן','L','#b45309','מוצאים לכם את הבית הנכון','מכירה|הערכת שווי ושיווק\nהשכרה|בדיקת שוכרים\nליווי עסקה|מההצעה ועד המפתח'],
+['a','חברת בטיחות','L','#dc2626','בטיחות בעבודה ובמבנים','ייעוץ|בדיקות וסקרים\nהדרכות|לעובדים ומנהלים\nרישוי|ליווי מול הרשויות'],
+['g','חנות בגדים','S','#111827','קולקציה חדשה','חולצה,מכנסיים'],['g','חנות נעליים','S','#b45309','נוחות וסגנון','סנדלים,נעלי ספורט'],['g','חנות תכשיטים','S','#be185d','תכשיטים שנשארים','שרשרת,טבעת'],['g','חנות אלקטרוניקה','S','#2563eb','מחירים הוגנים ושירות','אוזניות,מטען'],['g','חנות רהיטים','S','#78350f','רהיטים לבית','ספה,שולחן'],['g','חנות מתנות','S','#db2777','מתנה שמרגשת','מארז מתנה,כרטיס ברכה'],['g','חנות קוסמטיקה','S','#c2477d','טיפוח לכל יום','קרם פנים,סבון'],['g','מוצרים דיגיטליים','S','#4f46e5','הורדה מיידית','מדריך,תבנית'],
+['h','פיצרייה','L','#dc2626','פיצה חמה עד הדלת','פיצות|בצק טרי\nתוספות|לבחירתכם\nמשלוחים|מהיר'],
+['h','מאפייה','L','#a16207','טרי כל בוקר','לחמים|אפייה מסורתית\nמאפים|מתוקים ומלוחים\nעוגות|להזמנה מראש'],
+['h','קייטרינג','L','#be123c','אירוח שנזכרים בו','אירועים|עד 500 איש\nמגשי אירוח|לעסקים ולבית\nתפריט מותאם|כשרות ואלרגנים'],
+['h','מלון','L','#0e7490','חופשה שמתחילה בדלת','חדרים|נוחות ושקט\nארוחת בוקר|כלולה\nמתקנים|בריכה וספא'],
+['h','צימרים','L','#4d7c0f','בריחה זוגית לטבע','צימר זוגי|ג׳קוזי ונוף\nצימר משפחתי|חצר וגינה\nחבילות|סופ״ש ואמצע שבוע'],
+['h','אתר תיירות','L','#0369a1','מסלולים וחוויות באזור','מסלולי טיול|לכל הגילאים\nאטרקציות|מומלצות\nלינה ואוכל|בקרבת מקום'],
+['h','שירות משלוחים','L','#ea580c','שליח מהיר לכל מקום','משלוח באותו יום|עד הדלת\nמשלוח עסקי|חבילות ומסמכים\nמעקב|הודעה בכל שלב'],
+['h','רופא פרטי','L','#0f766e','רפואה אישית ומקצועית','ייעוץ|פגישה פרטית\nבדיקות|סקר מלא\nמעקב|ליווי שוטף'],
+['h','מרפאת שיניים','L','#0891b2','חיוך בריא בלי פחד','בדיקה וניקוי|מניעה\nהלבנה|תוצאה מהירה\nיישור|שיניים וישור'],
+['h','יוגה','L','#7c3aed','נשימה, גוף ושקט','שיעור קבוצתי|לכל הרמות\nאימון פרטי|בהתאמה אישית\nריטריט|סופ״ש של שקט'],
+['h','תזונה','L','#16a34a','תזונה שמתאימה לחיים שלך','ייעוץ ראשוני|הכרות ומטרות\nליווי חודשי|תפריט ומעקב\nסדנאות|בקבוצה'],
+['h','מספרה','L','#db2777','תספורת, צבע ותסרוקות','תספורת|נשים וגברים\nצבע|גוונים ושיער בהיר\nטיפולים|שיער בריא'],
+['h','מורה פרטי','L','#2563eb','שיעורים פרטיים שמצליחים','מתמטיקה|כל הכיתות\nאנגלית|דיבור ובגרות\nהכנה לבגרות|תוכנית אישית'],
+['h','מכללה','L','#1e3a5f','לימודים לקראת מקצוע','מסלולים|קצרים וארוכים\nמלגות|בדיקת זכאות\nהרשמה|בקלות אונליין'],
+['h','תיק עבודות','L','#111827','עבודות נבחרות','פרויקט א|תיאור קצר\nפרויקט ב|תיאור קצר\nפרויקט ג|תיאור קצר'],
+['h','אתר מעצב','L','#be185d','עיצוב עם אופי','מיתוג|לוגו וזהות\nעיצוב גרפי|דפוס ודיגיטל\nאריזות|מוצר שמוכר'],
+['h','אתר אמן','L','#6d28d9','יצירות ותערוכות','יצירות|גלריה\nתערוכות|מועדים\nרכישה|פנייה ישירה'],
+['h','מוזיקאי או DJ','L','#111827','מוזיקה לכל אירוע','הופעות|לוח מועדים\nאירועים|חתונות ופרטי\nצרו קשר|הזמנת תאריך'],
+['h','בלוג אישי','L','#0f766e','מחשבות, מדריכים וסיפורים','פוסטים|הכי חדשים\nקטגוריות|נושאים\nעליי|מי אני'],
+['h','קורות חיים','L','#1d4ed8','ניסיון, כישורים ויצירת קשר','ניסיון|תפקידים קודמים\nכישורים|מקצועיים\nלימודים|תארים וקורסים'],
+['h','אתר משפחתי','L','#ea580c','מקום אחד לכל המשפחה','אירועים|ימי הולדת וחגים\nגלריה|תמונות משפחתיות\nסיפורים|זיכרונות'],
+['h','הזמנה לאירוע','L','#c2477d','מזמינים אתכם לחגוג','מתי|תאריך ושעה\nאיפה|כתובת והגעה\nאישור הגעה|בטופס למטה'],
+['h','עמותה','L','#0b6e99','יחד משנים מציאות','מטרות|מה אנחנו עושים\nהתנדבות|הצטרפו אלינו\nשקיפות|דוחות פעילות'],
+['h','גיוס תרומות','L','#dc2626','כל תרומה משנה','יעד|כמה צריך\nאיך תורמים|דרכי תרומה\nהשפעה|מה עשינו']);
+/* עוזר מקומי מבוסס כללים (לא מודל שפה) */
+const AIK=[['חנות|מכירת|קטלוג','shop'],['מסעדה|קפה|קייטרינג|פיצ|מאפי|אוכל','food'],['מרפא|יופי|כושר|שיניים|רופא|יוגה|תזונה|מספרה|קוסמט','health'],['קורס|לימוד|מורה|בית ספר|מכללה|סדנה','edu'],['תיק עבודות|צלם|מעצב|אמן|פורטפוליו','port'],['עמותה|תרומ|קהילה','ngo'],['נחיתה|קמפיין|לידים','land']],AIS=[['שחור וזהב|יוקרתי|זהב','luxury'],['כהה|דארק','dark'],['מינימל','minimal'],['צבעוני','color'],['מודרני|בהיר','modern']],AIC={כחול:'#2563eb',אדום:'#e11d48',ירוק:'#16a34a',סגול:'#7c3aed',כתום:'#ea580c',ורוד:'#db2777'};
+const pick=(L,t)=>(L.find(([r])=>new RegExp(r).test(t))||[])[1];
+const PB=n=>{const M=[[/שירות|מחיר/,()=>[mk('cards',{t:'שירות א|תיאור קצר\nשירות ב|תיאור קצר'})]],[/גלרי|עבודות/,()=>[mk('gallery',{})]],[/המלצ/,()=>[mk('cards',{t:'שם הלקוח|הדביקו כאן המלצה אמיתית'})]],[/שאל/,()=>[mk('faq',{})]],[/קשר/,()=>[mk('form',{}),mk('map',{})]],[/חנות|מוצר/,()=>[mk('shop',{})]],[/אודות|עלינו/,()=>[mk('text',{t:'ספרו כאן מי אתם.',a:'start'})]]],m=M.find(([r])=>r.test(n));return[mk('heading',{t:n,l:'1',a:'center'}),...(m?m[1]():[mk('text',{t:'כתבו כאן את התוכן.',a:'start'})])]};
+const BA=[[/טופס/,'form'],[/גלרי/,'gallery'],[/סרטון|יוטיוב/,'youtube'],[/מפה/,'map'],[/מחשבון/,'calc'],[/שאל/,'faq'],[/המלצ|מחיר/,'cards'],[/וואטסאפ/,'wa'],[/רשתות|סושיאל/,'social'],[/כפתור/,'button'],[/חנות|מוצרים/,'shop'],[/טקסט|פסקה/,'text'],[/כותרת/,'heading'],[/עמודות/,'cols'],[/מעקב/,'tracker'],[/מכתב/,'letter']];
+const audit=()=>{const o=[],PH=/(שירות א|מוצר א|פרויקט א|טיפול א|דוגמה|החליפו|הדביקו כאן|ספרו כאן|כתבו כאן)/;S.pages.forEach(p=>{if(!p.blocks.length)o.push(`עמוד "${p.name}" ריק`);p.blocks.forEach(b=>{const d=b.d,w=`"${p.name}": ${TYPES[b.t].n}`,bad=({image:!d.u,gallery:!lines(d.u).length&&!(d.up||[]).length,youtube:!yt(d.u),map:!d.q,embed:!d.c,form:!d.to&&!AP(),button:!d.u||d.u=='https://wa.me/972',social:!Object.keys(NETS).some(k=>d[k]),shop:!d.wa&&!AP(),countdown:!d.dt,compare:!d.a||!d.b})[b.t];if(bad)o.push(w+' – חסר מידע או הגדרה');if(PH.test(JSON.stringify(d)))o.push(w+' – נשאר טקסט דוגמה')})});if(!S.desc)o.push('חסר תיאור לגוגל (הגדרות האתר)');return o};
+const seoA=()=>{const o=[],tl=S.title.length;if(tl<10||tl>60)o.push(`כותרת האתר באורך ${tl} תווים. מומלץ 10–60.`);if(!S.desc){const h=S.pages[0].blocks.find(b=>b.t=='hero');if(h&&h.d.s){S.desc=h.d.s;o.push('הגדרתי תיאור לגוגל מתת־הכותרת של דף הבית. כדאי לשכתב אותו.')}else o.push('חסר תיאור לגוגל (הגדרות האתר).')}else if(S.desc.length>160)o.push('התיאור ארוך מ־160 תווים.');const im=S.pages.flatMap(p=>p.blocks).filter(b=>b.t=='image'&&b.d.u&&!b.d.c).length;if(im)o.push(im+' תמונות בלי כיתוב (ALT).');if(!S.dom)o.push('חסרה כתובת האתר (ל-canonical ול-sitemap).');if(S.pages.length>1)o.push('הניווט בין עמודים הוא פנימי (hash), ולכן מנועי חיפוש רואים בעיקר את דף הבית.');return o};
+const ai=t=>{t=t.trim();let m;
+if(/^(צור|בנה|תבנה|תיצור|ייצר)/.test(t)&&/אתר/.test(t)){const k=pick(AIK,t)||'biz',st=pick(AIS,t)||'modern';m=t.match(/אתר\s+(?:ל|עבור\s+)?(.+)/);const n=(m?m[1]:'').split(/\s+(?:עם|בסגנון|יוקרתי|כהה|מינימליסטי|צבעוני|מודרני|שחור)/)[0].trim().slice(0,40)||'האתר שלי';snap();S=gen({n,k,d:'',st,pg:'srv,gal,rev,faq,con',fn:'wa,form,map'});if(k=='shop')S.pages[0].blocks.splice(2,1,mk('shop',{}));pg=0;sel=null;all();return`יצרתי את "${n}" (${KIND[k][0]}, ${STY[st][0]}) עם ${S.pages.length} עמודים. זה מבנה התחלתי עם טקסטי דוגמה. כתבו "בדוק" כדי לראות מה להחליף.`}
+if(m=t.match(/הוסף עמוד\s+(.+)/)){const n=m[1].trim();snap();S.pages.push({id:'p'+uid(),name:n,blocks:PB(n)});pg=S.pages.length-1;sel=null;all();return`הוספתי את העמוד "${n}".`}
+if(m=t.match(/מחק עמוד\s+(.+)/)){const i=S.pages.findIndex(p=>p.name.includes(m[1].trim()));if(i<0)return'לא מצאתי עמוד כזה.';if(S.pages.length<2)return'אי אפשר למחוק את העמוד היחיד.';snap();S.pages.splice(i,1);pg=0;sel=null;all();return'העמוד נמחק. אפשר לבטל עם ↶.'}
+if(m=t.match(/שנה שם(?: האתר)?\s+ל(.+)/)){snap();S.title=m[1].trim();rcv();props();return'שם האתר עודכן.'}
+if(/גופן/.test(t)){const f=['Heebo','Assistant','Rubik','Frank Ruhl Libre'].find(x=>t.toLowerCase().includes(x.toLowerCase()))||(/אלגנט|מסורתי/.test(t)?'Frank Ruhl Libre':/מודרני/.test(t)?'Rubik':null);if(!f)return'כתבו למשל: "גופן אלגנטי" או "גופן Rubik".';snap();S.font=f;rcv();props();return'הגופן הוחלף ל־'+f+'.'}
+if(/(הגדל|הקטן)/.test(t)&&/כותרת/.test(t)){const b=cur();if(!b||b.t!='heading')return'בחרו קודם כותרת בדף ואז כתבו שוב.';snap();b.d.l=String(Math.min(3,Math.max(1,+b.d.l+(/הגדל/.test(t)?-1:1))));rcv();props();return'עדכנתי את גודל הכותרת.'}
+if(/אנימצי/.test(t)){snap();S.an=/בטל|הסר|ללא/.test(t)?'off':/עשיר|הרבה/.test(t)?'rich':'soft';rcv();props();return'אנימציות האתר: '+({off:'כבויות',soft:'עדינות',rich:'עשירות'})[S.an]+'.'}
+const sty=pick(AIS,t),col=Object.keys(AIC).find(c=>t.includes(c));
+if((sty||col)&&!/הוסף/.test(t)){snap();if(sty){const[,a,bg,tx,f]=STY[sty];Object.assign(S,{a,bg,tx,font:f})}if(col)S.a=AIC[col];rcv();props();return'עדכנתי את העיצוב.'}
+if(/^הוסף/.test(t)){const b=BA.find(([r])=>r.test(t));if(!b)return'לא הבנתי איזה אלמנט להוסיף. נסו: טופס, גלריה, סרטון, מפה, מחשבון, שאלות נפוצות, חנות, עמודות, כפתור וואטסאפ.';snap();const k=b[1]=='wa'?mk('button',{t:'💬 וואטסאפ',u:'https://wa.me/972',a:'center'}):mk(b[1],{});P().blocks.push(k);sel=k.id;rcv();props();return'הוספתי את האלמנט בסוף הדף. אפשר לערוך אותו בלוח משמאל.'}
+if(m=t.match(/^כתוב.*?על\s+(.+)/)){const x=m[1].trim(),k=mk('text',{t:`ב${x} אנחנו מאמינים בשירות אישי, בשקיפות ובתוצאות. נשמח להכיר אתכם ולהתאים את הפתרון בדיוק לצרכים שלכם. השאירו פרטים ונחזור אליכם בהקדם.`,a:'start'});snap();P().blocks.push(k);sel=k.id;rcv();props();return'הוספתי טיוטת טקסט מתבנית. עדיין צריך להתאים אותה למה שאתם באמת מציעים.'}
+if(/seo|קידום|גוגל/i.test(t)){snap();const o=seoA();rcv();props();return'בדיקת SEO:\n• '+(o.join('\n• ')||'לא נמצאו בעיות בסיסיות.')+'\n(אלה המלצות, לא הבטחה לדירוג.)'}
+if(/בדוק|בדיקה|חסר/.test(t)){const o=audit();return o.length?'מצאתי '+o.length+' דברים לטפל בהם:\n• '+o.join('\n• '):'לא מצאתי חוסרים בסיסיים. מומלץ לעבור על האתר בתצוגה לפני פרסום.'}
+return'לא הבנתי. אני עוזר מבוסס כללים. דוגמאות:\n• צור אתר לחברת שיפוצים יוקרתי\n• הפוך לשחור וזהב / כחול\n• הוסף עמוד שירותים\n• הוסף טופס / חנות / עמודות\n• כתוב על העסק שלי\n• בדוק את האתר\n• בדיקת SEO'};
+document.body.insertAdjacentHTML('beforeend','<div id="ai" hidden><div class="ah"><b>🤖 עוזר מקומי</b><small>מבוסס כללים, לא מודל שפה</small><button data-ax>✕</button></div><div id="al"></div><div class="chips"></div><form id="af"><input id="ai_i" placeholder="כתבו פקודה בעברית..." autocomplete="off"><button>שלח</button></form></div>');
+const say=(t,u)=>{const d=document.createElement('div');d.className=u?'u':'b';d.textContent=t;$('#al').append(d);$('#al').scrollTop=1e9};
+$('#ai .chips').innerHTML=['צור אתר לחברת שיפוצים יוקרתי','הפוך לשחור וזהב','הוסף עמוד שירותים','הוסף טופס','בדוק את האתר','בדיקת SEO'].map(x=>`<button type="button">${x}</button>`).join('');
+const run=t=>{if(!t.trim())return;say(t,1);try{say(ai(t))}catch(e){say('משהו השתבש. נסו ניסוח אחר.')}};
+$('#af').onsubmit=e=>{e.preventDefault();run($('#ai_i').value);$('#ai_i').value=''};
+$('#ai').onclick=e=>{if(e.target.dataset.ax!=null)$('#ai').hidden=true;else if(e.target.closest('.chips')&&e.target.tagName=='BUTTON')run(e.target.textContent)};
+$('#aib').onclick=()=>{$('#ai').hidden=!$('#ai').hidden;if(!$('#al').children.length)say('שלום! אני עוזר מקומי שפועל לפי כללים, בלי חיבור לשרת ובלי AI חיצוני. אני יודע ליצור אתר, לשנות עיצוב, להוסיף עמודים ואלמנטים, לבדוק חוסרים ולהציע SEO. בחרו דוגמה או כתבו פקודה.')};
+const s6=document.createElement('style');s6.textContent='#ai{position:fixed;bottom:14px;left:14px;width:min(350px,calc(100vw - 28px));height:440px;background:#15151a;color:#f1ece0;border:1px solid #d4af37;border-radius:14px;z-index:45;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a}#ai[hidden]{display:none}#ai .ah{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #2a2a33}#ai .ah small{color:#b9b3a3;flex:1;font-size:.75em}#ai .ah button{background:0;border:0;color:#fff;cursor:pointer}#al{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}#al div{padding:8px 10px;border-radius:10px;white-space:pre-wrap;font-size:.92em;line-height:1.5;max-width:92%}#al .b{background:#22222b}#al .u{background:#d4af37;color:#111;align-self:flex-end}#ai .chips{display:flex;gap:6px;overflow:auto;padding:6px 10px}#ai .chips button{white-space:nowrap;background:#22222b;color:#f1ece0;border:1px solid #3a3a46;border-radius:99px;padding:5px 10px;cursor:pointer;font:inherit;font-size:.8em}#af{display:flex;gap:6px;padding:10px}#af input{flex:1;padding:9px;border-radius:8px;border:1px solid #3a3a46;background:#0e0e12;color:#f1ece0;font:inherit}#af button{background:#d4af37;border:0;border-radius:8px;padding:0 14px;font:inherit;font-weight:600;cursor:pointer}#props input[type=checkbox]{display:inline!important;width:auto!important}';
+document.head.append(s6);
+/* ===== שלב 3: אנימציות, 7 אלמנטים חדשים, 300 מבנים (100 × 3), אימות ===== */
+const rvc=b=>{const a=(b.s&&b.s.an)||'',lv=S.an||'soft';return(a=='none'||(!a&&lv=='off'))?'':' rv '+(a||'up')};
+const ANIMS=`.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;text-align:center}.st b{display:block;font-size:2.4em;color:var(--a);line-height:1.2}.st span{opacity:.8}
+.cd{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.cd span{background:#fff;color:#1d2433;border-radius:14px;padding:14px 18px;min-width:80px;text-align:center;box-shadow:0 6px 18px #0002}.cd b{display:block;font-size:2em;color:var(--a)}
+.sl{text-align:center;padding:24px;border-radius:16px;background:#fff;color:#1d2433;box-shadow:0 6px 24px #0001}.sd{display:none}.sd.on{display:block}.sd p{font-size:1.2em;margin:0 0 8px}.dots{display:flex;gap:6px;justify-content:center;margin-top:10px}.dots i{width:8px;height:8px;border-radius:50%;background:#0003;cursor:pointer}.dots i.on{background:var(--a)}
+.stp{display:grid;gap:14px}.stp div{display:flex;gap:14px;align-items:flex-start}.stp em{flex:none;width:38px;height:38px;border-radius:50%;background:var(--a);color:var(--ab,#fff);display:grid;place-items:center;font-style:normal;font-weight:700}.stp b{display:block}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:center}.plan{background:#fff;color:#1d2433;border:1px solid #e3e8ee;border-radius:18px;padding:22px;text-align:center}.plan.hl{border:2px solid var(--a);transform:scale(1.04);box-shadow:0 14px 40px #0002}.plan h3{margin:0}.plan .pr{font-size:2em;font-weight:800;color:var(--a);margin:8px 0}.plan ul{list-style:none;padding:0;margin:0 0 14px}.plan li{padding:4px 0}
+.cmp{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;--p:50%}.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.cmp .top{clip-path:inset(0 calc(100% - var(--p)) 0 0)}.cmp input{position:absolute;bottom:10px;left:5%;width:90%}
+.tk{overflow:hidden;white-space:nowrap;border-block:1px solid #8883;padding:10px 0}.tki{display:inline-block;animation:mq 22s linear infinite}.tki span{padding-inline-end:3em;font-weight:600}
+.rv{opacity:0;transition:opacity .8s ease,transform .8s ease}.rv.up{transform:translateY(28px)}.rv.zoom{transform:scale(.94)}.rv.side{transform:translateX(40px)}.rv.in{opacity:1;transform:none}
+.card,.plan{transition:transform .25s,box-shadow .25s}.card:hover{transform:translateY(-6px);box-shadow:0 14px 30px #0002}.btn{transition:transform .2s,filter .2s}.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}.g img{transition:transform .35s}.g img:hover{transform:scale(1.05)}
+.wa{position:fixed;bottom:18px;inset-inline-end:18px;z-index:30;width:56px;height:56px;border-radius:50%;background:#25d366;color:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 6px 20px #0004}
+.an-rich .hero:not([style*=url]){background-size:220% 220%;animation:gm 14s ease infinite}.an-rich .hero h1{animation:hi 1s ease both}`;
+const ANIMK=`@keyframes mq{to{transform:translateX(50%)}}@keyframes gm{50%{background-position:100% 50%}}@keyframes hi{from{opacity:0;transform:translateY(20px)}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1!important;transform:none!important}}`;
+Object.assign(TYPES,{
+stats:{n:'מספרים מונפשים',i:'🔢',d:{t:'0+|החליפו בנתון אמיתי\n0+|החליפו בנתון אמיתי\n0|החליפו בנתון אמיתי'},f:[['t','מספר | תווית (שורה לכל נתון, למשל 500+ | לקוחות)','area']]},
+countdown:{n:'ספירה לאחור',i:'⏳',d:{t:'מתחילים בעוד',dt:''},f:[['t','כותרת'],['dt','תאריך ושעה (למשל 2027-01-31 18:00)']]},
+slider:{n:'המלצות מתחלפות',i:'💬',d:{t:'הדביקו כאן המלצה אמיתית|שם הלקוח\nהדביקו כאן המלצה אמיתית|שם הלקוח'},f:[['t','המלצה | שם (שורה לכל המלצה)','area']]},
+steps:{n:'שלבים / איך זה עובד',i:'🪜',d:{t:'משאירים פרטים|ממלאים טופס קצר\nמתאמים שיחה|נחזור אליכם בהקדם\nמתחילים|מקבלים הצעה מותאמת'},f:[['t','כותרת | תיאור (שורה לכל שלב)','area']]},
+plans:{n:'מחירון חבילות',i:'💎',d:{t:'דוגמה: בסיסי|₪0|החליפו תכונה א;החליפו תכונה ב\nדוגמה: מומלץ|₪0|החליפו תכונה א;החליפו תכונה ב;החליפו תכונה ג|*\nדוגמה: מתקדם|₪0|החליפו תכונה א;החליפו תכונה ב'},f:[['t','שם | מחיר | תכונות מופרדות ב־; | * להדגשה','area']]},
+compare:{n:'לפני / אחרי',i:'↔️',d:{a:'',b:''},f:[['a','תמונת "לפני"','img'],['b','תמונת "אחרי"','img']]},
+ticker:{n:'טקסט רץ',i:'📣',d:{t:'משפט מרכזי אחד  •  שירות מרכזי  •  הבטחה קצרה  •  '},f:[['t','הטקסט שרץ','area']]}});
+Object.assign(H,{
+stats:d=>`<div class="stats">${lines(d.t).map(l=>{const[a,b]=l.split('|').map(x=>x.trim()),m=a.match(/^([\d.,]+)(.*)$/);return`<div class="st"><b class="cnt"${m?` data-to="${parseFloat(m[1].replace(/,/g,''))}" data-suf="${esc(m[2])}"`:''}>${esc(a)}</b><span>${esc(b||'')}</span></div>`}).join('')}</div>`,
+countdown:d=>`<div class="cdn" data-t="${esc(d.dt)}"><h3 style="text-align:center">${esc(d.t)}</h3><div class="cd">${['ימים','שעות','דקות','שניות'].map(x=>`<span><b>0</b>${x}</span>`).join('')}</div></div>`,
+slider:d=>`<div class="sl">${lines(d.t).map((l,i)=>{const[a,b]=l.split('|');return`<div class="sd${i?'':' on'}"><p>״${esc(a)}״</p><b>${esc((b||'').trim())}</b></div>`}).join('')}<div class="dots">${lines(d.t).map((l,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div>`,
+steps:d=>`<div class="stp">${lines(d.t).map((l,i)=>{const[a,b]=l.split('|');return`<div><em>${i+1}</em><span><b>${esc(a)}</b>${esc((b||'').trim())}</span></div>`}).join('')}</div>`,
+plans:d=>`<div class="plans">${lines(d.t).map(l=>{const[n,p,f='',h]=l.split('|').map(x=>(x||'').trim());return`<div class="plan${h=='*'?' hl':''}"><h3>${esc(n)}</h3><div class="pr">${esc(p)}</div><ul>${f.split(';').map(x=>`<li>${esc(x.trim())}</li>`).join('')}</ul></div>`}).join('')}</div>`,
+compare:d=>d.a&&d.b?`<div class="cmp"><img src="${esc(d.b)}" alt="אחרי"><img class="top" src="${esc(d.a)}" alt="לפני"><input type="range" min="0" max="100" value="50" aria-label="השוואה" oninput="this.parentNode.style.setProperty('--p',this.value+'%')"></div>`:'<div class="ph">↔️ בחרו שתי תמונות</div>',
+ticker:d=>`<div class="tk"><div class="tki"><span>${esc(d.t)}</span><span>${esc(d.t)}</span></div></div>`});
+const RT4=()=>{const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const run=c=>{if(c.dataset.to==null)return;const to=+c.dataset.to,suf=c.dataset.suf||'',t0=performance.now(),f=t=>{const k=Math.min(1,(t-t0)/1400);c.textContent=Math.round(to*(1-Math.pow(1-k,3))).toLocaleString('he-IL')+(k<1?'':suf);if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)};
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);$$('.cnt',e.target).forEach(run)}}),{threshold:.1});$$('.rv').forEach(x=>io.observe(x));
+$$('.cnt').forEach(c=>{if(!c.closest('.rv')){const o=new IntersectionObserver(es=>{if(es[0].isIntersecting){o.disconnect();run(c)}});o.observe(c)}});
+$$('.cdn').forEach(c=>{const t=new Date((c.dataset.t||'').replace(' ','T')).getTime(),b=$$('b',c),tick=()=>{if(isNaN(t))return;let d=t-Date.now();if(d<=0){c.querySelector('.cd').textContent='הגיע הזמן! 🎉';return}const v=[864e5,36e5,6e4,1e3].map(u=>{const x=Math.floor(d/u);d-=x*u;return x});b.forEach((e,i)=>e.textContent=v[i]);setTimeout(tick,1000)};tick()});
+$$('.sl').forEach(s=>{const sd=$$('.sd',s),dt=$$('.dots i',s);let i=0,tm;const go=n=>{i=(n+sd.length)%sd.length;sd.forEach((x,k)=>x.classList.toggle('on',k==i));dt.forEach((x,k)=>x.classList.toggle('on',k==i))},rn=()=>{clearInterval(tm);tm=setInterval(()=>go(i+1),5000)};dt.forEach((d,k)=>d.onclick=()=>{go(k);rn()});rn()})};
+const variant=(s,lv,st)=>{if(st){const[,a,bg,tx,f]=STY[st];Object.assign(s,{a,bg,tx,font:f})}s.an=lv==2?'rich':'soft';if(!lv)return s;const hp=s.pages[0].blocks,H1=t=>mk('heading',{t,l:'2',a:'center'}),i=hp.findIndex(b=>b.t=='hero')+1,j=hp.map(b=>b.t).lastIndexOf('social');
+hp.splice(j<0?hp.length:j,0,H1('איך זה עובד'),mk('steps',{}),H1('מה אומרים עלינו'),mk('slider',{}));
+hp.splice(i,0,mk('stats',{}));
+if(lv==2){hp.splice(i,0,mk('ticker',{}));const k=hp.map(b=>b.t).lastIndexOf('social');hp.splice(k<0?hp.length:k,0,H1('חבילות ומחירים'),mk('plans',{}))}return s};
+BA.unshift([/מספרים|סטטיסטיק/,'stats'],[/ספירה לאחור|טיימר/,'countdown'],[/מתחלפות|סליידר|קרוסלה/,'slider'],[/שלבים|איך זה עובד/,'steps'],[/חבילות/,'plans'],[/לפני ואחרי|לפני\/אחרי/,'compare'],[/טקסט רץ|רץ/,'ticker']);
+const s7=document.createElement('style');s7.textContent=sc(ANIMS)+ANIMK+'#page .sd{display:block!important}';setTimeout(()=>document.head.append(s7),0);
+const st=document.createElement('style');st.textContent='#page '+SITECSS.replace(/\}(?=[^}])/g,'}#page ').replace(/,(?=[^}]*\{)/g,',#page ');document.head.append(st);
+all();
+</script></body></html>
